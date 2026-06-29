@@ -1,0 +1,17 @@
+# Dependencias
+node_modules/
+
+# Builds de frontend
+admin/dist/
+pwa/dist/
+pwa/dev-dist/
+
+# Configuracion sensible / local
+api/config/config.php
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Sistema
+.DS_Store
+*.log
