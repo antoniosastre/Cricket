@@ -1,5 +1,7 @@
 # Partes de trabajo
 
+[![CI](https://github.com/antoniosastre/Cricket/actions/workflows/ci.yml/badge.svg)](https://github.com/antoniosastre/Cricket/actions/workflows/ci.yml)
+
 Aplicación para el seguimiento centralizado de partes de trabajo de empresas que
 prestan servicios con un grupo de trabajadores (p. ej. una instaladora eléctrica
 con varios electricistas). Registra las **horas** dedicadas en cada instalación y
@@ -112,6 +114,14 @@ npm run dev        # http://127.0.0.1:5174
 - **Limitación de v1**: seleccionar y registrar trabajo sobre una instalación
   existente funciona sin conexión; **crear una instalación nueva requiere conexión**
   (necesita el id que devuelve el servidor).
+
+## Integración continua (CI)
+
+`.github/workflows/ci.yml` se ejecuta en cada *pull request* y en *push* a `main`
+y a ramas `claude/**`:
+
+- **php-lint**: comprueba la sintaxis de todos los `*.php` de `api/` (`php -l`).
+- **build (admin)** y **build (pwa)**: `npm ci` + `npm run build` de cada SPA.
 
 ## Seguridad
 
