@@ -29,7 +29,10 @@ tipo OVH/Ionos (Apache/PHP/MySQL).
     con 401/403.
   - `Http.php` — `body()`, `json()`, `error()`, `csv()`, `cors()`.
   - `Controllers/` — un controlador por recurso (Auth, Dashboard, Trabajos,
-    Facturacion, Clientes, Instalaciones, Trabajadores, Catalogo, Jornadas, Sync).
+    Facturacion, Clientes, Instalaciones, Trabajadores, Catalogo, Jornadas,
+    Materiales, Sync). El admin puede editar/borrar líneas pendientes vía
+    `PATCH`/`DELETE` en `/jornadas/{id}` y `/materiales/{id}`; ambos rechazan con
+    409 si la línea ya está facturada (`lote_id` no nulo).
 - Migraciones: `api/migrations/001_schema.sql` + `migrate.php` (aplica esquema y,
   si la BD está vacía, inserta datos semilla).
 

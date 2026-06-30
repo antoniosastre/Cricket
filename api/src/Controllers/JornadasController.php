@@ -20,6 +20,9 @@ final class JornadasController
         if (!$j) {
             Http::error('Jornada no encontrada', 404);
         }
+        if ($j['lote_id'] !== null) {
+            Http::error('La jornada ya esta facturada; reviertela antes de editar', 409);
+        }
         $inicio = isset($b['inicio']) ? date('Y-m-d H:i:s', strtotime((string) $b['inicio'])) : $j['inicio'];
         $fin = array_key_exists('fin', $b)
             ? ($b['fin'] ? date('Y-m-d H:i:s', strtotime((string) $b['fin'])) : null)

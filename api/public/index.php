@@ -26,6 +26,7 @@ use App\Controllers\InstalacionesController;
 use App\Controllers\TrabajadoresController;
 use App\Controllers\CatalogoController;
 use App\Controllers\JornadasController;
+use App\Controllers\MaterialesController;
 use App\Controllers\SyncController;
 
 Http::cors();
@@ -76,6 +77,9 @@ $r->delete('/catalogo/{id}', [CatalogoController::class, 'delete']);
 
 $r->patch('/jornadas/{id}',  [JornadasController::class, 'update']);
 $r->delete('/jornadas/{id}', [JornadasController::class, 'delete']);
+
+$r->patch('/materiales/{id}',  [MaterialesController::class, 'update']);
+$r->delete('/materiales/{id}', [MaterialesController::class, 'delete']);
 
 // --- PWA trabajador ---
 $r->post('/sync', [SyncController::class, 'sync']);
