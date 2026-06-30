@@ -1,0 +1,13 @@
+# Redirige todas las peticiones al front controller, preservando Authorization.
+RewriteEngine On
+
+# Pasa el header Authorization a PHP (algunos hostings lo eliminan).
+RewriteCond %{HTTP:Authorization} ^(.+)$
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%1]
+
+# No reescribir ficheros/directorios existentes.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteRule ^ index.php [QSA,L]
