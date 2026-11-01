@@ -68,7 +68,7 @@ jobs:
         run: php api/migrations/migrate.php
       - name: Pruebas
         run: |
-          php -S 127.0.0.1:8080 -t api/public > php.log 2>&1 &
+          php -S 127.0.0.1:8080 -t api/public api/public/index.php > php.log 2>&1 &
           sleep 1
           CRICKET_API=http://127.0.0.1:8080 node --test api/tests/*.test.mjs
       - name: Log de PHP

@@ -76,7 +76,7 @@ Convenciones de estado:
 cd api
 cp config/config.sample.php config/config.php   # editar credenciales + jwt_secret
 php migrations/migrate.php                       # esquema + semilla
-php -S 127.0.0.1:8080 -t public
+php -S 127.0.0.1:8080 -t public public/index.php   # index.php como router
 
 # Frontends (cada uno)
 cd admin   # o pwa

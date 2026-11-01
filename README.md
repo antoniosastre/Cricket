@@ -62,7 +62,7 @@ Requisitos: PHP 8 con `pdo_mysql`, MySQL/MariaDB y Node 18+.
 cd api
 cp config/config.sample.php config/config.php   # edita credenciales y jwt_secret
 php migrations/migrate.php                       # crea tablas + datos de ejemplo
-php -S 127.0.0.1:8080 -t public                  # API en http://127.0.0.1:8080
+php -S 127.0.0.1:8080 -t public public/index.php # API en http://127.0.0.1:8080
 ```
 
 Datos semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
