@@ -93,7 +93,9 @@ npm run dev        # http://127.0.0.1:5174
    phpMyAdmin y creando luego el usuario admin).
 2. **API**: sube la carpeta `api/` y haz que el dominio/subdominio de la API
    apunte a `api/public/`. Copia `config/config.php` con las credenciales reales y
-   un `jwt_secret` largo y aleatorio. El `.htaccess` ya reescribe todo a
+   un `jwt_secret` aleatorio de al menos 32 caracteres (`openssl rand -base64 48`):
+   con el valor de ejemplo, o uno más corto, la API responde 500 al iniciar
+   sesión y en toda ruta autenticada. El `.htaccess` ya reescribe todo a
    `index.php` y preserva la cabecera `Authorization`.
 3. **Frontends**: compila cada SPA y sube el contenido de `dist/`:
 
