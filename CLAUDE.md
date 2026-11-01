@@ -1,6 +1,8 @@
 # CLAUDE.md
 
 Guía para trabajar en este repositorio con Claude Code. Léela antes de hacer cambios.
+Lo que queda por hacer, en orden y con las decisiones ya tomadas, está en
+[`PENDIENTE.md`](PENDIENTE.md).
 
 ## Qué es
 
