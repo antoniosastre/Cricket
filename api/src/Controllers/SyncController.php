@@ -8,6 +8,8 @@ use App\Http;
 // Sincronizacion offline-first de la PWA. Upsert idempotente por uuid:
 // reenviar el mismo registro no crea duplicados. Se usa tanto para el
 // heartbeat del temporizador (online) como para vaciar la cola offline.
+// Una linea ya facturada, o de otro trabajador, no se modifica: su reenvio
+// se ignora.
 final class SyncController
 {
     public static function sync(): void
@@ -45,6 +47,9 @@ final class SyncController
         if ($uuid === '' || $inst === 0 || $inicio === null) {
             return; // datos incompletos: se ignora
         }
+        if (self::protegida($db, 'jornadas', $uuid, $usuarioId)) {
+            return; // facturada o de otro trabajador: se ignora
+        }
         $fin = self::dt($j['fin'] ?? null);
         $estado = in_array($j['estado'] ?? '', ['en_curso', 'confirmada', 'descartada'], true)
             ? $j['estado'] : 'en_curso';
@@ -78,6 +83,9 @@ final class SyncController
         if ($uuid === '' || $inst === 0 || $desc === '') {
             return;
         }
+        if (self::protegida($db, 'materiales_linea', $uuid, $usuarioId)) {
+            return; // facturada o de otro trabajador: se ignora
+        }
         $fecha = self::date($m['fecha'] ?? null) ?? date('Y-m-d');
         $catalogoId = isset($m['catalogo_id']) && $m['catalogo_id'] !== '' ? (int) $m['catalogo_id'] : null;
         $cantidad = isset($m['cantidad']) && $m['cantidad'] !== '' ? (float) $m['cantidad'] : 1.0;
@@ -101,6 +109,17 @@ final class SyncController
             ':fecha' => $fecha, ':cat' => $catalogoId, ':desc' => mb_substr($desc, 0, 200),
             ':cant' => $cantidad, ':unidad' => $unidad, ':precio' => $precio, ':origen' => $origen,
         ]);
+    }
+
+    // True si ya existe una linea con ese uuid y esta facturada o es de otro
+    // trabajador. FOR UPDATE la bloquea hasta el commit de la sincronizacion.
+    private static function protegida(\PDO $db, string $tabla, string $uuid, int $usuarioId): bool
+    {
+        $st = $db->prepare("SELECT usuario_id, lote_id FROM $tabla WHERE uuid = ? FOR UPDATE");
+        $st->execute([$uuid]);
+        $fila = $st->fetch();
+        return $fila !== false
+            && ($fila['lote_id'] !== null || (int) $fila['usuario_id'] !== $usuarioId);
     }
 
     private static function dt($v): ?string

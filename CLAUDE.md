@@ -50,6 +50,8 @@ Convenciones de estado:
 - **Facturado/historial**: `lote_id` asignado.
 - `jornadas.uuid` y `materiales_linea.uuid` (generados en cliente) → `POST /sync`
   hace **upsert idempotente** por `uuid`. Mantén esta propiedad al tocar `/sync`.
+  El upsert **no toca** una línea ya facturada (`lote_id` no nulo) ni la de otro
+  trabajador: el reenvío se ignora (`SyncController::protegida`).
 
 ## Frontend (`admin/` y `pwa/`)
 

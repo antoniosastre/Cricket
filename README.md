@@ -49,7 +49,8 @@ agrupa las líneas facturadas para el historial y la exportación.
 - **Pendiente de facturar**: `estado='confirmada'` y `lote_id IS NULL`.
 - **Facturado / historial**: `lote_id` asignado.
 - El `uuid` por registro hace que `POST /sync` sea idempotente (upsert): reenviar
-  desde la cola offline no duplica datos.
+  desde la cola offline no duplica datos. Un reenvío no modifica una línea ya
+  facturada ni la de otro trabajador: se ignora.
 
 ## Puesta en marcha (desarrollo)
 
