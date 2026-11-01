@@ -10,7 +10,8 @@ final class Auth
     {
         $header = self::bearer();
         $payload = $header ? Jwt::verify($header) : null;
-        if (!$payload) {
+        // El refresh token (60 dias) solo sirve en /auth/refresh, nunca como acceso.
+        if (!$payload || ($payload['typ'] ?? '') === 'refresh') {
             Http::error('No autorizado', 401);
         }
         if ($rol !== null && ($payload['rol'] ?? null) !== $rol) {
