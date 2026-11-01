@@ -87,8 +87,11 @@ $r->delete('/materiales/{id}', [MaterialesController::class, 'delete']);
 $r->post('/sync', [SyncController::class, 'sync']);
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
-// Permite servir la API bajo un subdirectorio (p. ej. /api).
-$base = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
+// Permite servir la API bajo un subdirectorio (p. ej. /api). La base solo
+// sale de SCRIPT_NAME cuando este es el propio index.php: con `php -S` y un
+// router, PHP 8.2 pone ahi la URL pedida si lleva extension (export.csv).
+$script = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+$base = substr($script, -strlen('/index.php')) === '/index.php' ? rtrim(dirname($script), '/') : '';
 if ($base !== '' && strpos($path, $base) === 0) {
     $path = substr($path, strlen($base));
 }
