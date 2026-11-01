@@ -99,7 +99,7 @@ Semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
 
 ## Verificación / CI
 
-- CI (`.github/workflows/ci.yml`) en cada PR/push a `main` y `claude/**`:
+- CI (`.github/workflows/ci.yml`) en cada PR y en cada push a `main`:
   `php -l` de `api/` + `npm ci && npm run build` de ambas SPAs.
 - Pruebas manuales hechas hasta ahora: flujo completo por `curl` contra MySQL real
   (incluida idempotencia de `/sync` y CSV con importes) y recorrido en navegador con
@@ -109,5 +109,8 @@ Semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
 
 ## Git
 
-- Desarrollo en la rama `claude/work-tracking-app-lt0dlu`; PR contra `main`.
-- No fuerces el push de la rama de trabajo (history rewrite) sin permiso.
+- Una rama nueva desde `main` por cada bloque de trabajo, con nombre descriptivo
+  en español; PR contra `main`. Los PR los revisa y los fusiona Antonio: nunca
+  `push` ni `merge` a `main`.
+- Commits y PR en español, explicando el porqué, sin menciones de autoría de IA.
+- No fuerces el push de una rama (history rewrite) sin permiso.

@@ -121,8 +121,8 @@ npm run dev        # http://127.0.0.1:5174
 
 ## Integración continua (CI)
 
-`.github/workflows/ci.yml` se ejecuta en cada *pull request* y en *push* a `main`
-y a ramas `claude/**`:
+`.github/workflows/ci.yml` se ejecuta en cada *pull request* y en cada *push* a
+`main`:
 
 - **php-lint**: comprueba la sintaxis de todos los `*.php` de `api/` (`php -l`).
 - **build (admin)** y **build (pwa)**: `npm ci` + `npm run build` de cada SPA.
