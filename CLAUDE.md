@@ -100,12 +100,17 @@ Semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
 ## Verificación / CI
 
 - CI (`.github/workflows/ci.yml`) en cada PR y en cada push a `main`:
-  `php -l` de `api/` + `npm ci && npm run build` de ambas SPAs.
+  `php -l` de `api/`, pruebas de la API (`api`) y `npm ci && npm run build` de
+  ambas SPAs.
+- **Pruebas de la API** (`api/tests/*.test.mjs`, `node:test` sin dependencias): de
+  extremo a extremo, por HTTP contra un servidor PHP y una base reales. El CI las
+  pasa con PHP 8.2 + MariaDB 10.11 y con PHP 8.4 + MySQL 8.0. Cada prueba crea sus
+  propios trabajadores e instalaciones con el admin de la semilla, así que no
+  dependen del orden. Toda lógica nueva de la API trae su prueba aquí.
 - Pruebas manuales hechas hasta ahora: flujo completo por `curl` contra MySQL real
   (incluida idempotencia de `/sync` y CSV con importes) y recorrido en navegador con
   Playwright de ambas SPAs, incluido el ciclo **offline → reconexión** de la PWA.
-- No hay tests automatizados todavía; si añades lógica no trivial, considera añadir
-  pruebas y, si requieren BD, levantar MySQL en el workflow.
+- Los frontales no tienen pruebas automáticas todavía.
 
 ## Git
 

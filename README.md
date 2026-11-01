@@ -125,6 +125,14 @@ npm run dev        # http://127.0.0.1:5174
 `main`:
 
 - **php-lint**: comprueba la sintaxis de todos los `*.php` de `api/` (`php -l`).
+- **api**: pruebas de la API de extremo a extremo (`api/tests/`), contra un
+  servidor PHP y una base reales: PHP 8.2 con MariaDB 10.11 y PHP 8.4 con MySQL 8.0.
+  En local, con la API en marcha y la semilla cargada:
+
+  ```bash
+  CRICKET_API=http://127.0.0.1:8080 node --test api/tests/*.test.mjs
+  ```
+
 - **build (admin)** y **build (pwa)**: `npm ci` + `npm run build` de cada SPA.
 
 ## Seguridad
