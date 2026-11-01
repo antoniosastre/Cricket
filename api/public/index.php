@@ -31,8 +31,10 @@ use App\Controllers\SyncController;
 
 Http::cors();
 
-// Captura errores no controlados como JSON.
+// Captura errores no controlados como JSON. El detalle va al log del
+// servidor, nunca a la respuesta.
 set_exception_handler(static function (\Throwable $e): void {
+    error_log('[partes] ' . $e);
     Http::error('Error interno', 500);
 });
 

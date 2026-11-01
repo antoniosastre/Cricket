@@ -30,7 +30,8 @@ final class SyncController
             $db->commit();
         } catch (\Throwable $e) {
             $db->rollBack();
-            Http::error('Error de sincronizacion: ' . $e->getMessage(), 500);
+            error_log('[partes] sync del usuario ' . $usuarioId . ': ' . $e);
+            Http::error('Error de sincronizacion', 500);
         }
 
         Http::json(['ok' => true, 'jornadas' => count($jornadas), 'materiales' => count($materiales)]);
