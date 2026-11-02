@@ -51,7 +51,7 @@ jobs:
         run: |
           api="${URL_APP%/}/api"
           curl --proto '=https' -fsS --max-time 120 -X POST -H "X-Clave-Despliegue: $CLAVE_DESPLIEGUE" "$api/sistema/migrar" | jq -e '.aplicadas | type == "array"'
-          for intento in {1..20}; do
+          for _ in {1..20}; do
             if curl --proto '=https' -fsS --max-time 10 "$api/healthz" | jq -e --arg v "$GITHUB_SHA" '.ok == true and .version == $v'; then exit 0; fi
             sleep 3
           done

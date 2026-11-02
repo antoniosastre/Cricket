@@ -56,10 +56,12 @@ jobs:
       - name: config.php de pruebas
         run: |
           cp api/config/config.sample.php api/config/config.php
+          # La cadena entre comillas simples es código PHP.
+          # shellcheck disable=SC2016
           php -r '$f = "api/config/config.php"; file_put_contents($f, str_replace("CAMBIA_ESTO_POR_UN_SECRETO_LARGO_Y_ALEATORIO", bin2hex(random_bytes(32)), file_get_contents($f)));'
       - name: Esperar a la base
         run: |
-          for i in $(seq 1 60); do
+          for _ in {1..60}; do
             php -r 'new PDO("mysql:host=127.0.0.1;port=3306;dbname=partes_trabajo", "root", "");' 2>/dev/null && exit 0
             sleep 2
           done
@@ -67,7 +69,9 @@ jobs:
       - name: Probar el primer arranque con una base aislada
         run: |
           cp -R api "$RUNNER_TEMP/arranque"
-          export CRICKET_CLAVE_PRUEBA=$(openssl rand -hex 32)
+          CRICKET_CLAVE_PRUEBA=$(openssl rand -hex 32)
+          export CRICKET_CLAVE_PRUEBA
+          # shellcheck disable=SC2016
           php -r '
             require "api/src/Config.php"; require "api/src/Db.php";
             App\Db::conn()->exec("CREATE DATABASE cricket_arranque");
