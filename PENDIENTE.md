@@ -17,13 +17,6 @@ Ya está hecho: los arreglos de seguridad y de `/sync` y las pruebas de la API e
 
 
 
-## 4. Cola offline de la PWA por usuario
-
-- Cada registro de la cola lleva el `usuario_id`. `flush()` sube solo los del usuario con sesión y el resto espera a que vuelva a entrar su dueño. Hoy, en un móvil compartido, lo pendiente de un trabajador se sube a nombre del siguiente.
-- Con un 401 tras fallar el refresh, volver al login conservando la cola. Hoy la cola falla en silencio para siempre.
-- «Salir» con una instalación en curso: no se permite hasta confirmarla o descartarla. Con registros sin subir, se avisa de que se quedan en el móvil y se subirán cuando vuelva a entrar. El texto actual dice lo contrario de lo que pasa.
-- Enseñar en la cabecera cuándo falla la subida.
-- Pruebas: Vitest con `fake-indexeddb` para `db.js` y `sync.js`, y un paso `npm test` en el CI.
 
 ## 5. Jornadas abiertas y pantallas de edición del portal
 

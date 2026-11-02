@@ -114,3 +114,7 @@ jobs:
       - name: Compilar
         working-directory: ${{ matrix.app }}
         run: npm run build
+      - name: Probar la cola móvil
+        if: matrix.app == 'pwa'
+        working-directory: pwa
+        run: npm test

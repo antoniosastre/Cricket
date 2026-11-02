@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { api } from '../api'
-import { cachePut, cacheGet, queueJornada } from '../db'
+import { api, auth } from '../api'
+import { cachePut, cacheGet, encolar } from '../db'
 import { flush, refreshCount } from '../sync'
 import {
   session, segmentoActivo, iniciarTramo, pararTramo,
@@ -40,13 +40,13 @@ onUnmounted(() => clearInterval(tick))
 async function heartbeat(estado) {
   const s = segmentoActivo() || session.segmentos[session.segmentos.length - 1]
   if (!s) return
-  await queueJornada({
+  await encolar(auth.user.id, { jornadas: [{
     uuid: s.uuid,
     instalacion_id: session.instalacion_id,
     inicio: s.inicio,
     fin: s.fin,
     estado,
-  })
+  }] })
   await refreshCount()
   flush()
 }
