@@ -31,6 +31,7 @@ final class TrabajadoresController
     {
         Auth::require('admin');
         $b = Http::body();
+        self::validarCredenciales($b);
         $nombre = trim((string) ($b['nombre'] ?? ''));
         $email  = trim((string) ($b['email'] ?? ''));
         $rol    = ($b['rol'] ?? 'trabajador') === 'admin' ? 'admin' : 'trabajador';
@@ -56,6 +57,7 @@ final class TrabajadoresController
     {
         Auth::require('admin');
         $b = Http::body();
+        self::validarCredenciales($b);
         $fields = ['nombre = ?', 'email = ?', 'rol = ?', 'tarifa_hora = ?', 'activo = ?'];
         $vals = [
             trim((string) ($b['nombre'] ?? '')),
@@ -84,5 +86,15 @@ final class TrabajadoresController
         // Baja logica para preservar historico de jornadas/materiales.
         Db::conn()->prepare('UPDATE usuarios SET activo = 0 WHERE id = ?')->execute([$id]);
         Http::json(['ok' => true]);
+    }
+
+    private static function validarCredenciales(array $b): void
+    {
+        if (isset($b['password']) && $b['password'] !== '' && mb_strlen((string) $b['password']) < 10) {
+            Http::error('La contraseña debe tener al menos 10 caracteres');
+        }
+        if (isset($b['pin']) && $b['pin'] !== '' && !preg_match('/^[0-9]{6,72}$/D', (string) $b['pin'])) {
+            Http::error('El PIN debe tener entre 6 y 72 cifras');
+        }
     }
 }
