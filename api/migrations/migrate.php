@@ -5,18 +5,13 @@
 
 require __DIR__ . '/../src/Config.php';
 require __DIR__ . '/../src/Db.php';
+require __DIR__ . '/../src/Migraciones.php';
 
 use App\Db;
 
 $db = Db::conn();
 
-// 1) Esquema
-$schema = file_get_contents(__DIR__ . '/001_schema.sql');
-foreach (array_filter(array_map('trim', explode(';', $schema))) as $stmt) {
-    if ($stmt !== '') {
-        $db->exec($stmt);
-    }
-}
+\App\Migraciones::aplicar($db);
 echo "Esquema aplicado.\n";
 
 // 2) Semilla (solo si no hay usuarios todavia)
