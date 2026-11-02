@@ -113,19 +113,6 @@ OVH, en sus planes básicos, no da SSH ni ejecuta nada al desplegar, y no tiene 
 - El router con `{id}` numérico: `/trabajos/abc` → 404 en vez de 500. Ajustar la prueba de `errores.test.mjs`.
 - Tildes en los textos del portal («Administración», «Contraseña», «Añadir», «Catálogo»).
 
-## 6. Facturación
-
-- **Tarifa congelada**:
-  - columna `jornadas.tarifa_hora`, rellenada al facturar con la del trabajador;
-  - revertir la vacía, para que vuelva a tomar la vigente;
-  - el CSV y el archivado usan la congelada.
-- **Importes en el portal**:
-  - € por línea en Trabajos;
-  - totales separados de mano de obra, materiales de la empresa y materiales del cliente, sin decidir cómo se valoran estos últimos;
-  - el total en € de cada lote en Archivado.
-- **CSV a salvo de fórmulas**: los textos que empiecen por `=`, `+`, `-`, `@`, tabulador o retorno de carro llevan delante un `'`. Solo en las columnas de texto: los números no se tocan.
-- Facturar sin ninguna línea pendiente → 409, sin crear un lote vacío.
-- Revertir o exportar un lote que no existe → 404.
 
 ## 7. Dependencias
 

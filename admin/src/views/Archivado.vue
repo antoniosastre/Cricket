@@ -13,10 +13,11 @@ async function exportar(id) {
   await download(`/facturacion/${id}/export.csv`, `facturacion_lote_${id}.csv`)
 }
 async function revertir(id) {
-  if (!confirm('¿Revertir este lote? Las lineas volveran a pendientes de facturar.')) return
+  if (!confirm('¿Revertir este lote? Las líneas volverán a pendientes de facturar.')) return
   try { await api(`/facturacion/${id}/revertir`, { method: 'POST' }); await load() }
   catch (e) { alert(e.message) }
 }
+const moneda = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 function fmt(s) { return s ? s.substring(0, 16).replace('T', ' ') : '' }
 onMounted(load)
 </script>
@@ -25,9 +26,9 @@ onMounted(load)
   <div class="container">
     <h2>Archivado · Lotes facturados</h2>
     <p v-if="error" class="error">{{ error }}</p>
-    <div v-if="!lotes.length" class="empty">Todavia no hay nada facturado.</div>
+    <div v-if="!lotes.length" class="empty">Todavía no hay nada facturado.</div>
     <table class="card" v-else style="display:table; width:100%;">
-      <thead><tr><th>Fecha</th><th>Referencia</th><th>Admin</th><th class="right">Horas</th><th class="right">Materiales</th><th></th></tr></thead>
+      <thead><tr><th>Fecha</th><th>Referencia</th><th>Admin</th><th class="right">Horas</th><th class="right">Materiales</th><th class="right">Total</th><th></th></tr></thead>
       <tbody>
         <tr v-for="l in lotes" :key="l.id">
           <td>{{ fmt(l.fecha) }}</td>
@@ -35,6 +36,7 @@ onMounted(load)
           <td>{{ l.admin }}</td>
           <td class="right">{{ l.total_horas }}</td>
           <td class="right">{{ l.total_mat }}</td>
+          <td class="right">{{ moneda.format(l.total_euros) }}</td>
           <td class="right">
             <button class="ghost sm" @click="exportar(l.id)">CSV</button>
             <button class="danger sm" @click="revertir(l.id)">Revertir</button>

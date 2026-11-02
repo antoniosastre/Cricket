@@ -42,6 +42,15 @@ function totalHoras(instId) {
 function totalMat(instId) {
   return checks[instId] ? checks[instId].mat.size : 0
 }
+const moneda = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
+function importe(v) { return v == null ? 'Sin precio' : moneda.format(v) }
+function totalSeleccion(instId, tipo) {
+  const horas = tipo === 'horas'
+  const filas = horas ? detalle[instId].horas : materialesPorOrigen(instId, tipo)
+  const ids = horas ? checks[instId].horas : checks[instId].mat
+  const centimos = filas.filter(f => ids.has(f.id)).reduce((s, f) => s + Math.round((f.importe ?? 0) * 100), 0)
+  return moneda.format(centimos / 100)
+}
 function materialesPorOrigen(instId, origen) {
   const d = detalle[instId]; if (!d) return []
   return d.materiales.filter(m => m.origen === origen)
@@ -82,7 +91,7 @@ async function guardarEdicion() {
 }
 
 async function borrarLinea(tipo, instId, id) {
-  if (!confirm('¿Eliminar esta linea? No se puede deshacer.')) return
+  if (!confirm('¿Eliminar esta línea? No se puede deshacer.')) return
   const path = tipo === 'hora' ? `/jornadas/${id}` : `/materiales/${id}`
   try {
     await api(path, { method: 'DELETE' })
@@ -93,8 +102,8 @@ async function borrarLinea(tipo, instId, id) {
 
 async function facturar(instId) {
   const c = checks[instId]
-  if (!c.horas.size && !c.mat.size) { alert('Marca al menos una linea'); return }
-  if (!confirm('¿Marcar las lineas seleccionadas como facturadas?')) return
+  if (!c.horas.size && !c.mat.size) { alert('Marca al menos una línea'); return }
+  if (!confirm('¿Marcar las líneas seleccionadas como facturadas?')) return
   busy[instId] = true
   try {
     const res = await api('/facturacion', {
@@ -133,7 +142,7 @@ onMounted(load)
         <!-- Bloque horas -->
         <div class="section-title">Horas</div>
         <table>
-          <thead><tr><th></th><th>Fecha</th><th class="right">Horas</th><th>Trabajador</th><th></th></tr></thead>
+          <thead><tr><th></th><th>Fecha</th><th class="right">Horas</th><th>Trabajador</th><th class="right">Importe</th><th></th></tr></thead>
           <tbody>
             <tr v-for="h in detalle[inst.id].horas" :key="h.id">
               <td><input type="checkbox" style="width:auto"
@@ -141,13 +150,13 @@ onMounted(load)
                          @change="toggleCheck(inst.id, 'horas', h.id)" /></td>
               <td>{{ fmtFecha(h.fecha) }}</td>
               <td class="right">{{ h.horas }}</td>
-              <td>{{ h.trabajador }}</td>
+              <td>{{ h.trabajador }}</td><td class="right">{{ importe(h.importe) }}</td>
               <td class="right nowrap">
                 <button class="ghost sm" @click="editarHora(inst.id, h)">✎</button>
                 <button class="danger sm" @click="borrarLinea('hora', inst.id, h.id)">✕</button>
               </td>
             </tr>
-            <tr v-if="!detalle[inst.id].horas.length"><td colspan="5" class="muted">Sin horas.</td></tr>
+            <tr v-if="!detalle[inst.id].horas.length"><td colspan="6" class="muted">Sin horas.</td></tr>
           </tbody>
         </table>
 
@@ -155,7 +164,7 @@ onMounted(load)
         <template v-for="origen in ['empresa', 'cliente']" :key="origen">
           <div class="section-title">Materiales ({{ origen }})</div>
           <table>
-            <thead><tr><th></th><th>Fecha</th><th>Descripcion</th><th class="right">Cant.</th><th>Trabajador</th><th></th></tr></thead>
+            <thead><tr><th></th><th>Fecha</th><th>Descripción</th><th class="right">Cant.</th><th>Trabajador</th><th class="right">Importe</th><th></th></tr></thead>
             <tbody>
               <tr v-for="m in materialesPorOrigen(inst.id, origen)" :key="m.id">
                 <td><input type="checkbox" style="width:auto"
@@ -164,20 +173,24 @@ onMounted(load)
                 <td>{{ fmtFecha(m.fecha) }}</td>
                 <td>{{ m.descripcion }}</td>
                 <td class="right">{{ m.cantidad }} {{ m.unidad }}</td>
-                <td>{{ m.trabajador }}</td>
+                <td>{{ m.trabajador }}</td><td class="right">{{ importe(m.importe) }}</td>
                 <td class="right nowrap">
                   <button class="ghost sm" @click="editarMaterial(inst.id, m)">✎</button>
                   <button class="danger sm" @click="borrarLinea('material', inst.id, m.id)">✕</button>
                 </td>
               </tr>
               <tr v-if="!materialesPorOrigen(inst.id, origen).length">
-                <td colspan="6" class="muted">Sin materiales de {{ origen }}.</td>
+                <td colspan="7" class="muted">Sin materiales de {{ origen }}.</td>
               </tr>
             </tbody>
           </table>
         </template>
 
         <!-- Totales y facturar -->
+        <h3>Importes seleccionados</h3>
+        <p>Mano de obra <strong>{{ totalSeleccion(inst.id, 'horas') }}</strong> ·
+          Materiales de la empresa <strong>{{ totalSeleccion(inst.id, 'empresa') }}</strong> ·
+          Materiales del cliente <strong>{{ totalSeleccion(inst.id, 'cliente') }}</strong></p>
         <div class="totals">
           <span>Total horas: <strong>{{ totalHoras(inst.id).toFixed(2) }}</strong></span>
           <span>Materiales: <strong>{{ totalMat(inst.id) }}</strong></span>
@@ -201,7 +214,7 @@ onMounted(load)
 
         <template v-else>
           <label><span>Fecha</span><input type="date" v-model="editing.form.fecha" /></label>
-          <label><span>Descripcion</span><input v-model="editing.form.descripcion" /></label>
+          <label><span>Descripción</span><input v-model="editing.form.descripcion" /></label>
           <div class="row">
             <label style="flex:1"><span>Cantidad</span><input type="number" step="0.01" v-model="editing.form.cantidad" /></label>
             <label style="flex:1"><span>Unidad</span><input v-model="editing.form.unidad" /></label>
