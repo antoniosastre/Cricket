@@ -27,10 +27,10 @@ async function submit() {
 <template>
   <div class="container" style="max-width: 380px; margin-top: 8vh;">
     <div class="card">
-      <h2 style="margin-top:0;">Acceso a administración</h2>
+      <h2 style="margin-top:0;">Acceso administracion</h2>
       <form @submit.prevent="submit">
         <label><span>Email</span><input v-model="email" type="email" autocomplete="username" required /></label>
-        <label><span>Contraseña</span><input v-model="password" type="password" autocomplete="current-password" required /></label>
+        <label><span>Contrasena</span><input v-model="password" type="password" autocomplete="current-password" required /></label>
         <p v-if="error" class="error">{{ error }}</p>
         <button type="submit" :disabled="loading" style="width:100%;">
           {{ loading ? 'Entrando…' : 'Entrar' }}
