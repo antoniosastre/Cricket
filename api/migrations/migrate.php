@@ -5,21 +5,21 @@
 
 require __DIR__ . '/../src/Config.php';
 require __DIR__ . '/../src/Db.php';
+require __DIR__ . '/../src/Migraciones.php';
 
 use App\Db;
 
 $db = Db::conn();
 
-// 1) Esquema
-$schema = file_get_contents(__DIR__ . '/001_schema.sql');
-foreach (array_filter(array_map('trim', explode(';', $schema))) as $stmt) {
-    if ($stmt !== '') {
-        $db->exec($stmt);
-    }
-}
+\App\Migraciones::aplicar($db);
 echo "Esquema aplicado.\n";
 
-// 2) Semilla (solo si no hay usuarios todavia)
+if (!in_array('--demo', $argv, true)) {
+    exit(0);
+}
+
+// La semilla solo se carga desde la consola de desarrollo.
+$db->beginTransaction();
 $count = (int) $db->query('SELECT COUNT(*) FROM usuarios')->fetchColumn();
 if ($count === 0) {
     $admin = password_hash('admin1234', PASSWORD_DEFAULT);
@@ -58,4 +58,5 @@ if ($count === 0) {
     echo "Ya habia datos; semilla omitida.\n";
 }
 
+$db->commit();
 echo "Listo.\n";

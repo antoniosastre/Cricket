@@ -1,29 +1,29 @@
 // Cliente HTTP de la PWA. Igual que el del portal pero con login por PIN.
 import { reactive } from 'vue'
 
-const API = import.meta.env.VITE_API_URL || '/api'
+const API = import.meta.env.VITE_API_URL || '../api'
 
 export const auth = reactive({
-  access: localStorage.getItem('access') || '',
-  refresh: localStorage.getItem('refresh') || '',
-  user: JSON.parse(localStorage.getItem('user') || 'null'),
+  access: localStorage.getItem('partes.pwa.access') || '',
+  refresh: localStorage.getItem('partes.pwa.refresh') || '',
+  user: JSON.parse(localStorage.getItem('partes.pwa.user') || 'null'),
 })
 
 export function setSession(data) {
   auth.access = data.access
   auth.refresh = data.refresh
   auth.user = data.user
-  localStorage.setItem('access', data.access)
-  localStorage.setItem('refresh', data.refresh)
-  localStorage.setItem('user', JSON.stringify(data.user))
+  localStorage.setItem('partes.pwa.access', data.access)
+  localStorage.setItem('partes.pwa.refresh', data.refresh)
+  localStorage.setItem('partes.pwa.user', JSON.stringify(data.user))
 }
 
 export function logout() {
   auth.access = auth.refresh = ''
   auth.user = null
-  localStorage.removeItem('access')
-  localStorage.removeItem('refresh')
-  localStorage.removeItem('user')
+  localStorage.removeItem('partes.pwa.access')
+  localStorage.removeItem('partes.pwa.refresh')
+  localStorage.removeItem('partes.pwa.user')
 }
 
 async function tryRefresh() {

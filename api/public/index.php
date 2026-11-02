@@ -28,6 +28,7 @@ use App\Controllers\CatalogoController;
 use App\Controllers\JornadasController;
 use App\Controllers\MaterialesController;
 use App\Controllers\SyncController;
+use App\Controllers\SistemaController;
 
 Http::cors();
 
@@ -39,6 +40,11 @@ set_exception_handler(static function (\Throwable $e): void {
 });
 
 $r = new Router();
+
+$r->get('/healthz', [SistemaController::class, 'health']);
+$r->get('/sistema/estado', [SistemaController::class, 'estado']);
+$r->post('/sistema/migrar', [SistemaController::class, 'migrar']);
+$r->post('/sistema/admin-inicial', [SistemaController::class, 'adminInicial']);
 
 // --- Autenticacion ---
 $r->post('/auth/login',     [AuthController::class, 'login']);

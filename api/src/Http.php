@@ -41,8 +41,13 @@ final class Http
 
     public static function cors(): void
     {
-        $origins = Config::get('cors_origins', '*');
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        try {
+            $origins = $origin ? Config::get('cors_origins', []) : [];
+        } catch (\Throwable $e) {
+            // Sin configuración nunca se abre el origen. Healthz podrá responder 503.
+            $origins = [];
+        }
         if ($origins === '*') {
             header('Access-Control-Allow-Origin: *');
         } elseif ($origin && in_array($origin, (array) $origins, true)) {
@@ -50,7 +55,7 @@ final class Http
             header('Vary: Origin');
         }
         header('Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Clave-Despliegue');
         header('Access-Control-Max-Age: 86400');
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
             http_response_code(204);

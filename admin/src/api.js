@@ -2,30 +2,30 @@
 // automatico cuando expira (401).
 import { reactive } from 'vue'
 
-const API = import.meta.env.VITE_API_URL || '/api'
+const API = import.meta.env.VITE_API_URL || '../api'
 
 export const auth = reactive({
-  access: localStorage.getItem('access') || '',
-  refresh: localStorage.getItem('refresh') || '',
-  user: JSON.parse(localStorage.getItem('user') || 'null'),
+  access: localStorage.getItem('partes.admin.access') || '',
+  refresh: localStorage.getItem('partes.admin.refresh') || '',
+  user: JSON.parse(localStorage.getItem('partes.admin.user') || 'null'),
 })
 
 export function setSession(data) {
   auth.access = data.access
   auth.refresh = data.refresh
   auth.user = data.user
-  localStorage.setItem('access', data.access)
-  localStorage.setItem('refresh', data.refresh)
-  localStorage.setItem('user', JSON.stringify(data.user))
+  localStorage.setItem('partes.admin.access', data.access)
+  localStorage.setItem('partes.admin.refresh', data.refresh)
+  localStorage.setItem('partes.admin.user', JSON.stringify(data.user))
 }
 
 export function logout() {
   auth.access = ''
   auth.refresh = ''
   auth.user = null
-  localStorage.removeItem('access')
-  localStorage.removeItem('refresh')
-  localStorage.removeItem('user')
+  localStorage.removeItem('partes.admin.access')
+  localStorage.removeItem('partes.admin.refresh')
+  localStorage.removeItem('partes.admin.user')
 }
 
 async function tryRefresh() {
@@ -40,8 +40,8 @@ async function tryRefresh() {
   return true
 }
 
-export async function api(path, { method = 'GET', body, raw = false, retry = true } = {}) {
-  const headers = {}
+export async function api(path, { method = 'GET', body, raw = false, retry = true, headers: extra = {} } = {}) {
+  const headers = { ...extra }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (auth.access) headers['Authorization'] = `Bearer ${auth.access}`
 
@@ -51,10 +51,10 @@ export async function api(path, { method = 'GET', body, raw = false, retry = tru
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 
-  if (res.status === 401 && retry && (await tryRefresh())) {
+  if (res.status === 401 && auth.access && retry && (await tryRefresh())) {
     return api(path, { method, body, raw, retry: false })
   }
-  if (res.status === 401) {
+  if (res.status === 401 && auth.access) {
     logout()
     throw new Error('Sesion expirada')
   }
