@@ -32,6 +32,7 @@ final class TrabajadoresController
     {
         Auth::require('admin');
         $b = Http::body();
+        self::validarCredenciales($b);
         $nombre = trim((string) ($b['nombre'] ?? ''));
         $email  = trim((string) ($b['email'] ?? ''));
         $rol    = ($b['rol'] ?? 'trabajador') === 'admin' ? 'admin' : 'trabajador';
@@ -57,6 +58,7 @@ final class TrabajadoresController
     {
         $actor = Auth::require('admin');
         $b = Http::body();
+        self::validarCredenciales($b);
         self::cambiar($id, $b, (int) $actor['sub']);
     }
 
@@ -115,5 +117,15 @@ final class TrabajadoresController
             throw $e;
         }
         Http::json(['ok' => true]);
+    }
+
+    private static function validarCredenciales(array $b): void
+    {
+        if (isset($b['password']) && $b['password'] !== '' && mb_strlen((string) $b['password']) < 10) {
+            Http::error('La contraseña debe tener al menos 10 caracteres');
+        }
+        if (isset($b['pin']) && $b['pin'] !== '' && !preg_match('/^[0-9]{6,72}$/D', (string) $b['pin'])) {
+            Http::error('El PIN debe tener entre 6 y 72 cifras');
+        }
     }
 }
