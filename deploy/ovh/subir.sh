@@ -22,9 +22,12 @@ set sftp:connect-program "ssh -a -x -oStrictHostKeyChecking=$politica -oUserKnow
 set xfer:use-temp-file yes
 glob --exist "$OVH_DIR_WEB" || mkdir -p "$OVH_DIR_WEB"
 glob --exist "$OVH_DIR_CODIGO/config" || mkdir -p "$OVH_DIR_CODIGO/config"
-mirror -R --no-perms --exclude-glob config/ --exclude-glob config.php codigo "$OVH_DIR_CODIGO"
-mirror -R --no-perms --exclude-glob index.html --exclude-glob sw.js web "$OVH_DIR_WEB"
-mirror -R --no-perms web "$OVH_DIR_WEB"
+mirror -R --no-perms --transfer-all --exclude-glob config/ --exclude-glob config.php codigo "$OVH_DIR_CODIGO"
+mirror -R --no-perms --transfer-all --exclude-glob index.html --exclude-glob sw.js web "$OVH_DIR_WEB"
+put web/admin/index.html -o "$OVH_DIR_WEB/admin/index.html"
+put web/pwa/index.html -o "$OVH_DIR_WEB/pwa/index.html"
+put web/index.html -o "$OVH_DIR_WEB/index.html"
+put web/pwa/sw.js -o "$OVH_DIR_WEB/pwa/sw.js"
 mirror -R --no-perms --delete --exclude-glob config/ --exclude-glob config.php codigo "$OVH_DIR_CODIGO"
 mirror -R --no-perms --delete web "$OVH_DIR_WEB"
 bye

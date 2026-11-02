@@ -5,6 +5,9 @@ for ruta in "$OVH_DIR_WEB" "$OVH_DIR_CODIGO"; do
     echo 'Ruta SFTP no válida' >&2; exit 1
   fi
 done
+if [[ $OVH_DIR_WEB == /* && $OVH_DIR_CODIGO != /* || $OVH_DIR_WEB != /* && $OVH_DIR_CODIGO == /* ]]; then
+  echo 'Usa dos rutas absolutas o dos relativas a la misma raíz SFTP.' >&2; exit 1
+fi
 web=/${OVH_DIR_WEB#/}
 codigo=/${OVH_DIR_CODIGO#/}
 if [[ $web != */control || $codigo != */api || $codigo == "${web%/*}/"* || $web == "$codigo/"* ]]; then
