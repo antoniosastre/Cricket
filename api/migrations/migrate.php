@@ -14,9 +14,14 @@ $db = Db::conn();
 \App\Migraciones::aplicar($db);
 echo "Esquema aplicado.\n";
 
-// 2) Semilla (solo si no hay usuarios todavia)
+if (!in_array('--demo', $argv, true)) {
+    exit(0);
+}
+
+// La semilla solo se carga desde la consola de desarrollo.
 $count = (int) $db->query('SELECT COUNT(*) FROM usuarios')->fetchColumn();
 if ($count === 0) {
+    $db->beginTransaction();
     $admin = password_hash('admin1234', PASSWORD_DEFAULT);
     $pin   = password_hash('1234', PASSWORD_DEFAULT);
 
@@ -48,6 +53,7 @@ if ($count === 0) {
         $stc->execute($c);
     }
 
+    $db->commit();
     echo "Semilla creada. Admin: admin@empresa.com / admin1234. Trabajadores PIN: 1234.\n";
 } else {
     echo "Ya habia datos; semilla omitida.\n";

@@ -1,0 +1,58 @@
+name: Despliegue de Cricket
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+concurrency:
+  group: despliegue-control
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    if: vars.OVH_SFTP_HOST != '' && vars.OVH_SFTP_USUARIO != '' && vars.OVH_DIR_WEB != '' && vars.OVH_DIR_CODIGO != '' && vars.URL_APP != ''
+    runs-on: ubuntu-latest
+    env:
+      OVH_DIR_WEB: ${{ vars.OVH_DIR_WEB }}
+      OVH_DIR_CODIGO: ${{ vars.OVH_DIR_CODIGO }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Comprobar secretos
+        env:
+          PASSWORD: ${{ secrets.OVH_SFTP_PASSWORD }}
+          CLAVE: ${{ secrets.CLAVE_DESPLIEGUE }}
+        run: test -n "$PASSWORD" && test "${#CLAVE}" -ge 32
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            admin/package-lock.json
+            pwa/package-lock.json
+      - name: Compilar las dos aplicaciones
+        run: |
+          for app in admin pwa; do (cd "$app" && npm ci && npm run build); done
+      - name: Empaquetar
+        run: bash deploy/ovh/empaquetar.sh "$RUNNER_TEMP/paquete" "$GITHUB_SHA"
+      - name: Subir por SFTP
+        env:
+          OVH_SFTP_HOST: ${{ vars.OVH_SFTP_HOST }}
+          OVH_SFTP_USUARIO: ${{ vars.OVH_SFTP_USUARIO }}
+          OVH_SFTP_KNOWN_HOSTS: ${{ vars.OVH_SFTP_KNOWN_HOSTS }}
+          OVH_SFTP_PASSWORD: ${{ secrets.OVH_SFTP_PASSWORD }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y lftp
+          bash deploy/ovh/subir.sh "$RUNNER_TEMP/paquete"
+      - name: Migrar y verificar el commit servido
+        env:
+          URL_APP: ${{ vars.URL_APP }}
+          CLAVE_DESPLIEGUE: ${{ secrets.CLAVE_DESPLIEGUE }}
+        run: |
+          api="${URL_APP%/}/api"
+          curl --proto '=https' -fsS --max-time 120 -X POST -H "X-Clave-Despliegue: $CLAVE_DESPLIEGUE" "$api/sistema/migrar" | jq -e '.aplicadas | type == "array"'
+          for intento in {1..20}; do
+            if curl --proto '=https' -fsS --max-time 10 "$api/healthz" | jq -e --arg v "$GITHUB_SHA" '.ok == true and .version == $v'; then exit 0; fi
+            sleep 3
+          done
+          exit 1

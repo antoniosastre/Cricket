@@ -12,7 +12,7 @@ function uuid() {
       })
 }
 
-const saved = JSON.parse(localStorage.getItem('session') || 'null')
+const saved = JSON.parse(localStorage.getItem('partes.pwa.session') || 'null')
 
 export const session = reactive(
   saved || {
@@ -23,7 +23,7 @@ export const session = reactive(
   }
 )
 
-watch(session, () => localStorage.setItem('session', JSON.stringify(session)), { deep: true })
+watch(session, () => localStorage.setItem('partes.pwa.session', JSON.stringify(session)), { deep: true })
 
 export function startSession(instalacion) {
   session.instalacion_id = instalacion.id
@@ -67,7 +67,7 @@ export function limpiarSesion() {
   session.instalacion_nombre = ''
   session.segmentos = []
   session.materiales = []
-  localStorage.removeItem('session')
+  localStorage.removeItem('partes.pwa.session')
 }
 
 export { uuid }

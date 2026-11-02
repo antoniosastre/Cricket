@@ -13,10 +13,7 @@ final class Config
         }
         $path = __DIR__ . '/../config/config.php';
         if (!is_file($path)) {
-            http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode(['error' => 'Falta config/config.php. Copia config.sample.php.']);
-            exit;
+            throw new \RuntimeException('Falta la configuración privada');
         }
         self::$data = require $path;
     }

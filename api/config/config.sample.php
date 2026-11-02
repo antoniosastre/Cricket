@@ -18,6 +18,7 @@ return [
     // Duracion de los tokens (segundos).
     'access_ttl'  => 3600,            // 1 hora
     'refresh_ttl' => 60 * 60 * 24 * 60, // 60 dias (sesion larga del trabajador)
-    // Origenes permitidos para CORS (las dos SPAs). '*' para desarrollo.
-    'cors_origins' => '*',
+    // En producción se usa el mismo origen. En desarrollo, indicar los orígenes locales.
+    'clave_despliegue' => '', // Secreto independiente de 32 caracteres o más.
+    'cors_origins' => [],
 ];

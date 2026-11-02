@@ -32,7 +32,7 @@ api/          Backend PHP (API REST)
   public/     Front controller (index.php) + .htaccess  -> raiz publica de la API
   src/        Config, Db, Jwt, Auth, Router, Http y Controllers/
   config/     config.sample.php (copiar a config.php)
-  migrations/ 001_schema.sql + migrate.php (esquema + semilla)
+  migrations/ NNN_*.sql + migrate.php (esquema versionado)
 admin/        SPA Vue 3 del portal de administracion
 pwa/          SPA Vue 3 (PWA) de los trabajadores
 ```
@@ -61,11 +61,13 @@ Requisitos: PHP 8 con `pdo_mysql`, MySQL/MariaDB y Node 18+.
 ```bash
 cd api
 cp config/config.sample.php config/config.php   # edita credenciales y jwt_secret
-php migrations/migrate.php                       # crea tablas + datos de ejemplo
+php migrations/migrate.php --demo                # tablas y datos de ejemplo, solo desarrollo
 php -S 127.0.0.1:8080 -t public public/index.php # API en http://127.0.0.1:8080
 ```
 
 Datos semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
+
+Para los servidores locales del portal y del móvil, configura `cors_origins` con `http://127.0.0.1:5173`, `http://127.0.0.1:5174` o los orígenes exactos que utilices. En producción se usa `[]`.
 
 ### 2) Portal admin
 
@@ -87,27 +89,9 @@ npm run dev        # http://127.0.0.1:5174
 
 > La PWA y su service worker requieren **HTTPS** (o `localhost`) para instalarse.
 
-## Despliegue en hosting sencillo (OVH / Ionos)
+## Despliegue en producción
 
-1. **Base de datos**: crea una BD MySQL y un usuario. Importa el esquema con
-   `php migrations/migrate.php` (o ejecutando `migrations/001_schema.sql` desde
-   phpMyAdmin y creando luego el usuario admin).
-2. **API**: sube la carpeta `api/` y haz que el dominio/subdominio de la API
-   apunte a `api/public/`. Copia `config/config.php` con las credenciales reales y
-   un `jwt_secret` aleatorio de al menos 32 caracteres (`openssl rand -base64 48`):
-   con el valor de ejemplo, o uno más corto, la API responde 500 al iniciar
-   sesión y en toda ruta autenticada. El `.htaccess` ya reescribe todo a
-   `index.php` y preserva la cabecera `Authorization`.
-3. **Frontends**: compila cada SPA y sube el contenido de `dist/`:
-
-   ```bash
-   cd admin && VITE_API_URL=https://tu-dominio/api npm run build   # -> sube admin/dist a /admin
-   cd pwa   && VITE_API_URL=https://tu-dominio/api npm run build   # -> sube pwa/dist a /pwa
-   ```
-
-   Ambas usan rutas *hash* (`#/...`) y `base: './'`, así que funcionan en cualquier
-   subcarpeta sin configurar reescrituras adicionales.
-4. **HTTPS** obligatorio para la PWA.
+La web del cliente conserva la raíz del dominio. Cricket publica la portada, el portal, la aplicación móvil y su API en `/control/`. La configuración y las migraciones quedan fuera de la raíz web. La [guía de puesta en marcha](deploy/ovh/README.md) detalla las variables, los secretos, la creación del primer administrador y la verificación de la versión servida.
 
 ## Funcionamiento offline (PWA)
 

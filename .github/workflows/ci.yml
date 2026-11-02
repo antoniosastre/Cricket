@@ -64,8 +64,22 @@ jobs:
             sleep 2
           done
           echo "La base no responde" && exit 1
+      - name: Probar el primer arranque con una base aislada
+        run: |
+          cp -R api "$RUNNER_TEMP/arranque"
+          export CRICKET_CLAVE_PRUEBA=$(openssl rand -hex 32)
+          php -r '
+            require "api/src/Config.php"; require "api/src/Db.php";
+            App\Db::conn()->exec("CREATE DATABASE cricket_arranque");
+            $c=require "api/config/config.php";
+            $c["db"]["name"]="cricket_arranque"; $c["clave_despliegue"]=getenv("CRICKET_CLAVE_PRUEBA");
+            file_put_contents($argv[1], "<?php return ".var_export($c,true).";");' "$RUNNER_TEMP/arranque/config/config.php"
+          php -S 127.0.0.1:8081 -t "$RUNNER_TEMP/arranque/public" "$RUNNER_TEMP/arranque/public/index.php" > arranque.log 2>&1 &
+          trap 'kill $!' EXIT
+          curl --retry 10 --retry-connrefused -fsS http://127.0.0.1:8081/healthz
+          CRICKET_API=http://127.0.0.1:8081 node api/tests/arranque.mjs
       - name: Migraciones y semilla
-        run: php api/migrations/migrate.php
+        run: php api/migrations/migrate.php --demo
       - name: Pruebas
         run: |
           php -S 127.0.0.1:8080 -t api/public api/public/index.php > php.log 2>&1 &

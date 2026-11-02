@@ -35,8 +35,7 @@ tipo OVH/Ionos (Apache/PHP/MySQL).
     Materiales, Sync). El admin puede editar/borrar líneas pendientes vía
     `PATCH`/`DELETE` en `/jornadas/{id}` y `/materiales/{id}`; ambos rechazan con
     409 si la línea ya está facturada (`lote_id` no nulo).
-- Migraciones: `api/migrations/001_schema.sql` + `migrate.php` (aplica esquema y,
-  si la BD está vacía, inserta datos semilla).
+- Migraciones: `api/migrations/NNN_*.sql` + `migrate.php`. La semilla requiere `--demo`; el alojamiento migra mediante la ruta protegida de sistema.
 
 ### Modelo de datos (claves)
 
@@ -60,7 +59,7 @@ Convenciones de estado:
 - Vue 3 + Vite, **rutas hash** (`createWebHashHistory`) y `base: './'` para servir
   en subcarpetas sin reescrituras.
 - Cliente HTTP en `src/api.js` (token + refresh automático). Base de API:
-  `import.meta.env.VITE_API_URL` con fallback a `'/api'`.
+  `import.meta.env.VITE_API_URL` con fallback a `'../api'`.
 - PWA offline:
   - `pwa/src/db.js` — IndexedDB con `idb`: cola (`outbox_*`) + caché. **Importante**:
     `cachePut` clona con `JSON.parse(JSON.stringify(...))` porque IndexedDB no puede
@@ -77,7 +76,7 @@ Convenciones de estado:
 # Backend
 cd api
 cp config/config.sample.php config/config.php   # editar credenciales + jwt_secret
-php migrations/migrate.php                       # esquema + semilla
+php migrations/migrate.php --demo                # esquema + semilla de desarrollo
 php -S 127.0.0.1:8080 -t public public/index.php   # index.php como router
 
 # Frontends (cada uno)
