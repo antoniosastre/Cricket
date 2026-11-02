@@ -16,10 +16,13 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.0",
+    "@vitejs/plugin-vue": "^6.0.10",
     "fake-indexeddb": "^6.2.7",
-    "vite": "^5.2.0",
-    "vite-plugin-pwa": "^0.20.0",
-    "vitest": "^3.2.7"
+    "vite": "^8.3.5",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": "^22.12.0 || >=24.0.0"
   }
 }

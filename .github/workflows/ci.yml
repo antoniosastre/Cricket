@@ -52,7 +52,7 @@ jobs:
       - name: Configurar Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
       - name: config.php de pruebas
         run: |
           cp api/config/config.sample.php api/config/config.php
@@ -105,12 +105,15 @@ jobs:
       - name: Configurar Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: npm
           cache-dependency-path: ${{ matrix.app }}/package-lock.json
       - name: Instalar dependencias
         working-directory: ${{ matrix.app }}
         run: npm ci
+      - name: Auditar dependencias
+        working-directory: ${{ matrix.app }}
+        run: npm audit --audit-level=high
       - name: Compilar
         working-directory: ${{ matrix.app }}
         run: npm run build
