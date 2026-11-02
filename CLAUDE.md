@@ -1,6 +1,8 @@
 # CLAUDE.md
 
 Guía para trabajar en este repositorio con Claude Code. Léela antes de hacer cambios.
+Lo que queda por hacer, en orden y con las decisiones ya tomadas, está en
+[`PENDIENTE.md`](PENDIENTE.md).
 
 ## Qué es
 
@@ -50,6 +52,8 @@ Convenciones de estado:
 - **Facturado/historial**: `lote_id` asignado.
 - `jornadas.uuid` y `materiales_linea.uuid` (generados en cliente) → `POST /sync`
   hace **upsert idempotente** por `uuid`. Mantén esta propiedad al tocar `/sync`.
+  El upsert **no toca** una línea ya facturada (`lote_id` no nulo) ni la de otro
+  trabajador: el reenvío se ignora (`SyncController::protegida`).
 
 ## Frontend (`admin/` y `pwa/`)
 
@@ -74,7 +78,7 @@ Convenciones de estado:
 cd api
 cp config/config.sample.php config/config.php   # editar credenciales + jwt_secret
 php migrations/migrate.php                       # esquema + semilla
-php -S 127.0.0.1:8080 -t public
+php -S 127.0.0.1:8080 -t public public/index.php   # index.php como router
 
 # Frontends (cada uno)
 cd admin   # o pwa
@@ -97,15 +101,23 @@ Semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
 
 ## Verificación / CI
 
-- CI (`.github/workflows/ci.yml`) en cada PR/push a `main` y `claude/**`:
-  `php -l` de `api/` + `npm ci && npm run build` de ambas SPAs.
+- CI (`.github/workflows/ci.yml`) en cada PR y en cada push a `main`:
+  `php -l` de `api/`, pruebas de la API (`api`) y `npm ci && npm run build` de
+  ambas SPAs.
+- **Pruebas de la API** (`api/tests/*.test.mjs`, `node:test` sin dependencias): de
+  extremo a extremo, por HTTP contra un servidor PHP y una base reales. El CI las
+  pasa con PHP 8.2 + MariaDB 10.11 y con PHP 8.4 + MySQL 8.0. Cada prueba crea sus
+  propios trabajadores e instalaciones con el admin de la semilla, así que no
+  dependen del orden. Toda lógica nueva de la API trae su prueba aquí.
 - Pruebas manuales hechas hasta ahora: flujo completo por `curl` contra MySQL real
   (incluida idempotencia de `/sync` y CSV con importes) y recorrido en navegador con
   Playwright de ambas SPAs, incluido el ciclo **offline → reconexión** de la PWA.
-- No hay tests automatizados todavía; si añades lógica no trivial, considera añadir
-  pruebas y, si requieren BD, levantar MySQL en el workflow.
+- Los frontales no tienen pruebas automáticas todavía.
 
 ## Git
 
-- Desarrollo en la rama `claude/work-tracking-app-lt0dlu`; PR contra `main`.
-- No fuerces el push de la rama de trabajo (history rewrite) sin permiso.
+- Una rama nueva desde `main` por cada bloque de trabajo, con nombre descriptivo
+  en español; PR contra `main`. Los PR los revisa y los fusiona Antonio: nunca
+  `push` ni `merge` a `main`.
+- Commits y PR en español, explicando el porqué, sin menciones de autoría de IA.
+- No fuerces el push de una rama (history rewrite) sin permiso.

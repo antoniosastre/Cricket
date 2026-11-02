@@ -11,7 +11,9 @@ return [
         'pass'    => '',
         'charset' => 'utf8mb4',
     ],
-    // Secreto para firmar los JWT. Cambialo por una cadena larga y aleatoria.
+    // Secreto para firmar los JWT: una cadena aleatoria de al menos 32 caracteres
+    // (p. ej. `openssl rand -base64 48`). Con este valor de ejemplo, o con uno mas
+    // corto, la API se niega a emitir y a aceptar tokens (responde 500).
     'jwt_secret' => 'CAMBIA_ESTO_POR_UN_SECRETO_LARGO_Y_ALEATORIO',
     // Duracion de los tokens (segundos).
     'access_ttl'  => 3600,            // 1 hora

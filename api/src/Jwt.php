@@ -5,6 +5,22 @@ namespace App;
 // para poder desplegar en hosting sencillo sin Composer.
 final class Jwt
 {
+    // El valor de config.sample.php es publico (esta en el repositorio): con el,
+    // cualquiera podria firmar un token de admin.
+    private const SECRETO_DE_EJEMPLO = 'CAMBIA_ESTO_POR_UN_SECRETO_LARGO_Y_ALEATORIO';
+
+    // Falla cerrado: sin un secreto propio no se firma ni se acepta ningun token.
+    private static function secret(): string
+    {
+        $secret = (string) Config::get('jwt_secret', '');
+        if (strlen($secret) < 32 || $secret === self::SECRETO_DE_EJEMPLO) {
+            throw new \RuntimeException(
+                'jwt_secret sin configurar: pon en config.php una cadena aleatoria de al menos 32 caracteres'
+            );
+        }
+        return $secret;
+    }
+
     private static function b64url(string $bin): string
     {
         return rtrim(strtr(base64_encode($bin), '+/', '-_'), '=');
@@ -32,7 +48,7 @@ final class Jwt
             self::b64url(json_encode($payload, JSON_UNESCAPED_SLASHES)),
         ];
         $signing = implode('.', $segments);
-        $sig = hash_hmac('sha256', $signing, (string) Config::get('jwt_secret'), true);
+        $sig = hash_hmac('sha256', $signing, self::secret(), true);
         $segments[] = self::b64url($sig);
         return implode('.', $segments);
     }
@@ -46,7 +62,7 @@ final class Jwt
         }
         [$h, $p, $s] = $parts;
         $expected = self::b64url(
-            hash_hmac('sha256', "$h.$p", (string) Config::get('jwt_secret'), true)
+            hash_hmac('sha256', "$h.$p", self::secret(), true)
         );
         if (!hash_equals($expected, $s)) {
             return null;

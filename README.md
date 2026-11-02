@@ -49,7 +49,8 @@ agrupa las líneas facturadas para el historial y la exportación.
 - **Pendiente de facturar**: `estado='confirmada'` y `lote_id IS NULL`.
 - **Facturado / historial**: `lote_id` asignado.
 - El `uuid` por registro hace que `POST /sync` sea idempotente (upsert): reenviar
-  desde la cola offline no duplica datos.
+  desde la cola offline no duplica datos. Un reenvío no modifica una línea ya
+  facturada ni la de otro trabajador: se ignora.
 
 ## Puesta en marcha (desarrollo)
 
@@ -61,7 +62,7 @@ Requisitos: PHP 8 con `pdo_mysql`, MySQL/MariaDB y Node 18+.
 cd api
 cp config/config.sample.php config/config.php   # edita credenciales y jwt_secret
 php migrations/migrate.php                       # crea tablas + datos de ejemplo
-php -S 127.0.0.1:8080 -t public                  # API en http://127.0.0.1:8080
+php -S 127.0.0.1:8080 -t public public/index.php # API en http://127.0.0.1:8080
 ```
 
 Datos semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
@@ -93,7 +94,9 @@ npm run dev        # http://127.0.0.1:5174
    phpMyAdmin y creando luego el usuario admin).
 2. **API**: sube la carpeta `api/` y haz que el dominio/subdominio de la API
    apunte a `api/public/`. Copia `config/config.php` con las credenciales reales y
-   un `jwt_secret` largo y aleatorio. El `.htaccess` ya reescribe todo a
+   un `jwt_secret` aleatorio de al menos 32 caracteres (`openssl rand -base64 48`):
+   con el valor de ejemplo, o uno más corto, la API responde 500 al iniciar
+   sesión y en toda ruta autenticada. El `.htaccess` ya reescribe todo a
    `index.php` y preserva la cabecera `Authorization`.
 3. **Frontends**: compila cada SPA y sube el contenido de `dist/`:
 
@@ -118,10 +121,18 @@ npm run dev        # http://127.0.0.1:5174
 
 ## Integración continua (CI)
 
-`.github/workflows/ci.yml` se ejecuta en cada *pull request* y en *push* a `main`
-y a ramas `claude/**`:
+`.github/workflows/ci.yml` se ejecuta en cada *pull request* y en cada *push* a
+`main`:
 
 - **php-lint**: comprueba la sintaxis de todos los `*.php` de `api/` (`php -l`).
+- **api**: pruebas de la API de extremo a extremo (`api/tests/`), contra un
+  servidor PHP y una base reales: PHP 8.2 con MariaDB 10.11 y PHP 8.4 con MySQL 8.0.
+  En local, con la API en marcha y la semilla cargada:
+
+  ```bash
+  CRICKET_API=http://127.0.0.1:8080 node --test api/tests/*.test.mjs
+  ```
+
 - **build (admin)** y **build (pwa)**: `npm ci` + `npm run build` de cada SPA.
 
 ## Seguridad

@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - 'claude/**'
 
 jobs:
   php-lint:
@@ -19,6 +18,62 @@ jobs:
           php-version: '8.2'
       - name: Comprobar sintaxis de los .php
         run: find api -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
+
+  # Pruebas de la API de extremo a extremo: servidor PHP real contra una base
+  # real. Dos combinaciones: la de MariaDB y la de MySQL 8 (la de OVH).
+  api:
+    name: api (PHP ${{ matrix.php }}, ${{ matrix.db }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.2'
+            db: 'mariadb:10.11'
+          - php: '8.4'
+            db: 'mysql:8.0'
+    services:
+      db:
+        image: ${{ matrix.db }}
+        env:
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: '1'
+          MARIADB_DATABASE: partes_trabajo
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: partes_trabajo
+        ports:
+          - 3306:3306
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_mysql, mbstring
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: config.php de pruebas
+        run: |
+          cp api/config/config.sample.php api/config/config.php
+          php -r '$f = "api/config/config.php"; file_put_contents($f, str_replace("CAMBIA_ESTO_POR_UN_SECRETO_LARGO_Y_ALEATORIO", bin2hex(random_bytes(32)), file_get_contents($f)));'
+      - name: Esperar a la base
+        run: |
+          for i in $(seq 1 60); do
+            php -r 'new PDO("mysql:host=127.0.0.1;port=3306;dbname=partes_trabajo", "root", "");' 2>/dev/null && exit 0
+            sleep 2
+          done
+          echo "La base no responde" && exit 1
+      - name: Migraciones y semilla
+        run: php api/migrations/migrate.php
+      - name: Pruebas
+        run: |
+          php -S 127.0.0.1:8080 -t api/public api/public/index.php > php.log 2>&1 &
+          sleep 1
+          CRICKET_API=http://127.0.0.1:8080 node --test api/tests/*.test.mjs
+      - name: Log de PHP
+        if: failure()
+        run: cat php.log
 
   build:
     name: build (${{ matrix.app }})
