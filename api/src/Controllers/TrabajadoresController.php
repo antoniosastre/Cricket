@@ -7,19 +7,9 @@ use App\Http;
 
 final class TrabajadoresController
 {
-    // Lista de usuarios. La PWA usa ?rol=trabajador para el selector de login.
+    // El listado de cuentas es privado.
     public static function index(): void
     {
-        $rolFiltro = $_GET['rol'] ?? null;
-        // El listado de trabajadores para el login de la PWA es publico
-        // (solo expone id y nombre). El resto requiere admin.
-        if ($rolFiltro === 'trabajador' && ($_GET['login'] ?? '') === '1') {
-            $rows = Db::conn()->query(
-                "SELECT id, nombre FROM usuarios WHERE rol='trabajador' AND activo=1 ORDER BY nombre"
-            )->fetchAll();
-            Http::json($rows);
-        }
-
         Auth::require('admin');
         $rows = Db::conn()->query(
             'SELECT id, nombre, email, rol, tarifa_hora, activo FROM usuarios ORDER BY rol, nombre'
@@ -31,11 +21,15 @@ final class TrabajadoresController
     {
         Auth::require('admin');
         $b = Http::body();
+        self::validarCredenciales($b);
         $nombre = trim((string) ($b['nombre'] ?? ''));
         $email  = trim((string) ($b['email'] ?? ''));
         $rol    = ($b['rol'] ?? 'trabajador') === 'admin' ? 'admin' : 'trabajador';
         if ($nombre === '' || $email === '') {
             Http::error('Nombre y email son obligatorios');
+        }
+        if (($rol === 'admin' && empty($b['password'])) || ($rol === 'trabajador' && ($b['pin'] ?? '') === '')) {
+            Http::error('Falta la credencial de acceso del rol elegido');
         }
         $pass = isset($b['password']) && $b['password'] !== '' ? password_hash((string) $b['password'], PASSWORD_DEFAULT) : null;
         $pin  = isset($b['pin']) && $b['pin'] !== '' ? password_hash((string) $b['pin'], PASSWORD_DEFAULT) : null;
@@ -56,6 +50,7 @@ final class TrabajadoresController
     {
         Auth::require('admin');
         $b = Http::body();
+        self::validarCredenciales($b);
         $fields = ['nombre = ?', 'email = ?', 'rol = ?', 'tarifa_hora = ?', 'activo = ?'];
         $vals = [
             trim((string) ($b['nombre'] ?? '')),
@@ -84,5 +79,15 @@ final class TrabajadoresController
         // Baja logica para preservar historico de jornadas/materiales.
         Db::conn()->prepare('UPDATE usuarios SET activo = 0 WHERE id = ?')->execute([$id]);
         Http::json(['ok' => true]);
+    }
+
+    private static function validarCredenciales(array $b): void
+    {
+        if (isset($b['password']) && $b['password'] !== '' && mb_strlen((string) $b['password']) < 10) {
+            Http::error('La contraseña debe tener al menos 10 caracteres');
+        }
+        if (isset($b['pin']) && $b['pin'] !== '' && !preg_match('/^[0-9]{6,72}$/D', (string) $b['pin'])) {
+            Http::error('El PIN debe tener entre 6 y 72 cifras');
+        }
     }
 }

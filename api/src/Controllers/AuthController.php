@@ -6,6 +6,7 @@ use App\Config;
 use App\Db;
 use App\Http;
 use App\Jwt;
+use App\IntentosLogin;
 
 final class AuthController
 {
@@ -19,13 +20,11 @@ final class AuthController
             Http::error('Email y contrasena requeridos');
         }
         $st = Db::conn()->prepare(
-            'SELECT * FROM usuarios WHERE email = ? AND activo = 1 LIMIT 1'
+            "SELECT * FROM usuarios WHERE email = ? AND rol='admin' AND activo = 1 LIMIT 1"
         );
         $st->execute([$email]);
         $u = $st->fetch();
-        if (!$u || !$u['password_hash'] || !password_verify($pass, $u['password_hash'])) {
-            Http::error('Credenciales invalidas', 401);
-        }
+        IntentosLogin::verificar($u ?: null, $email, 'admin', $pass);
         self::issue($u);
     }
 
@@ -39,13 +38,11 @@ final class AuthController
             Http::error('Usuario y PIN requeridos');
         }
         $st = Db::conn()->prepare(
-            'SELECT * FROM usuarios WHERE (email = ? OR id = ?) AND activo = 1 LIMIT 1'
+            "SELECT * FROM usuarios WHERE (email = ? OR id = ?) AND rol='trabajador' AND activo = 1 LIMIT 1"
         );
-        $st->execute([$ident, is_numeric($ident) ? (int) $ident : 0]);
+        $st->execute([$ident, ctype_digit($ident) ? (int) $ident : 0]);
         $u = $st->fetch();
-        if (!$u || !$u['pin_hash'] || !password_verify($pin, $u['pin_hash'])) {
-            Http::error('Credenciales invalidas', 401);
-        }
+        IntentosLogin::verificar($u ?: null, $ident, 'trabajador', $pin);
         self::issue($u);
     }
 

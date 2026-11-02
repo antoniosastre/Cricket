@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto'
 export const API = (process.env.CRICKET_API || 'http://127.0.0.1:8080').replace(/\/$/, '')
 
 // Administrador de la semilla de desarrollo (migrate.php).
-const ADMIN = { email: 'admin@empresa.com', password: 'admin1234' }
+const ADMIN = { email: 'admin@empresa.com', password: 'admin-demo-2026' }
 
 export async function llamar(path, { method = 'GET', body, token, headers = {} } = {}) {
   const h = { ...headers }

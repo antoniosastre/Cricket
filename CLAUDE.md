@@ -87,7 +87,7 @@ npm run dev
 npm run build
 ```
 
-Semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
+Semilla: admin `admin@empresa.com` / `admin-demo-2026`; trabajadores con PIN `123456`.
 
 ## Convenciones
 

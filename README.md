@@ -65,7 +65,7 @@ php migrations/migrate.php --demo                # tablas y datos de ejemplo, so
 php -S 127.0.0.1:8080 -t public public/index.php # API en http://127.0.0.1:8080
 ```
 
-Datos semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
+Datos semilla: admin `admin@empresa.com` / `admin-demo-2026`; trabajadores con PIN `123456`.
 
 Para los servidores locales del portal y del móvil, configura `cors_origins` con `http://127.0.0.1:5173`, `http://127.0.0.1:5174` o los orígenes exactos que utilices. En producción se usa `[]`.
 
