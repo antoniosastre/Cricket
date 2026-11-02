@@ -26,23 +26,34 @@ export function logout() {
   localStorage.removeItem('user')
 }
 
-async function tryRefresh() {
-  if (!auth.refresh) return false
-  try {
-    const res = await fetch(`${API}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh: auth.refresh }),
-    })
-    if (!res.ok) return false
-    setSession(await res.json())
-    return true
-  } catch {
-    return false
-  }
+let renovacion
+async function renovar(refresh) {
+  const res = await fetch(`${API}/auth/refresh`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh }),
+  })
+  if (res.status === 401 || res.status === 403) return false
+  if (!res.ok) throw new Error('No se pudo renovar la sesión. Se reintentará la subida.')
+  const data = await res.json()
+  if (auth.refresh === refresh) setSession(data)
+  return true
 }
 
-export async function api(path, { method = 'GET', body, retry = true } = {}) {
+function tryRefresh() {
+  const refresh = auth.refresh
+  if (!refresh) return false
+  if (renovacion?.token !== refresh) {
+    const promesa = renovar(refresh).finally(() => {
+      if (renovacion?.token === refresh) renovacion = undefined
+    })
+    renovacion = { token: refresh, promesa }
+  }
+  return renovacion.promesa
+}
+
+export async function api(path, { method = 'GET', body, retry = true, userId = auth.user?.id } = {}) {
+  if (userId !== auth.user?.id) throw new Error('Ha cambiado la sesión')
+  const access = auth.access
   const headers = {}
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (auth.access) headers['Authorization'] = `Bearer ${auth.access}`
@@ -52,8 +63,12 @@ export async function api(path, { method = 'GET', body, retry = true } = {}) {
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
-  if (res.status === 401 && retry && (await tryRefresh())) {
-    return api(path, { method, body, retry: false })
+  if (res.status === 401 && userId && auth.user?.id === userId && !path.startsWith('/auth/')) {
+    if (retry && (auth.access !== access || await tryRefresh())) {
+      return api(path, { method, body, retry: false, userId })
+    }
+    if (auth.user?.id === userId && auth.access === access) logout()
+    throw new Error('La sesión ha caducado. Vuelve a entrar.')
   }
   if (!res.ok) {
     let msg = 'Error'

@@ -113,6 +113,7 @@ npm run dev        # http://127.0.0.1:5174
 
 - La captura de horas y materiales se guarda en `localStorage` (sesión en curso) y
   en una **cola en IndexedDB** (`outbox`).
+- Cada registro y cada instalación en curso pertenecen a su trabajador. Tras caducar la sesión, el trabajo queda en el móvil hasta que vuelva a identificarse su dueño.
 - `POST /sync` se reintenta al recuperar conexión, al abrir la app y cada 30 s.
   Como el upsert es por `uuid`, reintentar es seguro.
 - **Limitación de v1**: seleccionar y registrar trabajo sobre una instalación

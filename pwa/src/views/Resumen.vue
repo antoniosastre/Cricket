@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { queueJornada, queueMaterial } from '../db'
+import { encolar } from '../db'
+import { auth } from '../api'
 import { flush, refreshCount } from '../sync'
 import { session, minutosTotales, limpiarSesion } from '../session'
 
@@ -19,46 +20,26 @@ function durSeg(s) {
   return `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}m`
 }
 
-async function confirmar() {
+async function guardar(descartar) {
+  if (guardando.value) return
+  if (descartar && !confirm('¿Descartar las horas y materiales de esta instalación?')) return
   guardando.value = true
-  // Encola los tramos como jornadas confirmadas y los materiales.
-  for (const s of session.segmentos) {
-    if (!s.fin) s.fin = new Date().toISOString()
-    await queueJornada({
-      uuid: s.uuid,
-      instalacion_id: session.instalacion_id,
-      inicio: s.inicio,
-      fin: s.fin,
-      estado: 'confirmada',
-    })
-  }
-  for (const m of session.materiales) {
-    await queueMaterial({ ...m, instalacion_id: session.instalacion_id })
-  }
-  await refreshCount()
-  flush() // se sincroniza ya si hay conexion; si no, queda en cola
-  limpiarSesion()
-  guardando.value = false
-  alert('Trabajo guardado. Se subirá cuando haya conexión si ahora no la hay.')
-  router.push('/')
-}
-
-async function salirSinGuardar() {
-  if (!confirm('Se perderán las horas y materiales de esta sesión. ¿Salir sin guardar?')) return
-  // Descarta en el servidor cualquier tramo que ya se hubiera enviado (heartbeat).
-  for (const s of session.segmentos) {
-    await queueJornada({
-      uuid: s.uuid,
-      instalacion_id: session.instalacion_id,
-      inicio: s.inicio,
-      fin: s.fin || new Date().toISOString(),
-      estado: 'descartada',
-    })
-  }
-  await refreshCount()
-  flush()
-  limpiarSesion()
-  router.push('/')
+  try {
+    const instalacion_id = session.instalacion_id
+    const jornadas = session.segmentos.map(s => ({
+      ...s, instalacion_id, fin: s.fin || new Date().toISOString(),
+      estado: descartar ? 'descartada' : 'confirmada',
+    }))
+    const materiales = descartar ? [] : session.materiales.map(m => ({ ...m, instalacion_id }))
+    await encolar(auth.user.id, { jornadas, materiales })
+    limpiarSesion()
+    await refreshCount()
+    flush()
+    if (!descartar) alert('Trabajo guardado. Se subirá cuando haya conexión.')
+    router.push('/')
+  } catch (e) {
+    alert('No se pudo guardar el trabajo en este móvil: ' + e.message)
+  } finally { guardando.value = false }
 }
 </script>
 
@@ -92,8 +73,8 @@ async function salirSinGuardar() {
       <div v-if="!session.materiales.length" class="muted">Sin materiales.</div>
     </div>
 
-    <button class="ok" :disabled="guardando" @click="confirmar">Confirmar y subir</button>
+    <button class="ok" :disabled="guardando" @click="guardar(false)">Confirmar y subir</button>
     <button class="sec" @click="router.push('/sesion')">Volver</button>
-    <button class="danger" @click="salirSinGuardar">Salir sin guardar</button>
+    <button class="danger" :disabled="guardando" @click="guardar(true)">Salir sin guardar</button>
   </div>
 </template>

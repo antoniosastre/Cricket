@@ -112,7 +112,7 @@ Semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
 - Pruebas manuales hechas hasta ahora: flujo completo por `curl` contra MySQL real
   (incluida idempotencia de `/sync` y CSV con importes) y recorrido en navegador con
   Playwright de ambas SPAs, incluido el ciclo **offline → reconexión** de la PWA.
-- Los frontales no tienen pruebas automáticas todavía.
+- La PWA prueba la cola, la renovación de sesión y el aislamiento entre trabajadores con `npm test`.
 
 ## Git
 

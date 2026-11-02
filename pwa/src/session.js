@@ -2,6 +2,7 @@
 // sobrevivir a recargas/cierres de la app. Una sesion = una instalacion con
 // uno o varios tramos de tiempo (segmentos) y una lista de materiales.
 import { reactive, watch } from 'vue'
+import { auth } from './api'
 
 function uuid() {
   return crypto.randomUUID
@@ -12,18 +13,18 @@ function uuid() {
       })
 }
 
-const saved = JSON.parse(localStorage.getItem('session') || 'null')
-
-export const session = reactive(
-  saved || {
-    instalacion_id: null,
-    instalacion_nombre: '',
-    segmentos: [], // { uuid, inicio, fin }
-    materiales: [], // { uuid, descripcion, cantidad, unidad, precio_unit, origen, catalogo_id, fecha }
-  }
-)
-
-watch(session, () => localStorage.setItem('session', JSON.stringify(session)), { deep: true })
+const vacia = () => ({ instalacion_id: null, instalacion_nombre: '', segmentos: [], materiales: [] })
+export const session = reactive(vacia())
+let clave
+watch(() => auth.user?.id, id => {
+  clave = null
+  const nueva = id ? `partes.pwa.session.${id}` : null
+  Object.assign(session, vacia(), nueva ? JSON.parse(localStorage.getItem(nueva) || 'null') : {})
+  clave = nueva
+}, { immediate: true, flush: 'sync' })
+watch(session, () => {
+  if (clave) localStorage.setItem(clave, JSON.stringify(session))
+}, { deep: true, flush: 'sync' })
 
 export function startSession(instalacion) {
   session.instalacion_id = instalacion.id
@@ -67,7 +68,7 @@ export function limpiarSesion() {
   session.instalacion_nombre = ''
   session.segmentos = []
   session.materiales = []
-  localStorage.removeItem('session')
+  if (clave) localStorage.removeItem(clave)
 }
 
 export { uuid }
