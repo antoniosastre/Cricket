@@ -30,6 +30,7 @@ final class DashboardController
                 'activo'         => $r['jornada_id'] !== null,
                 'jornada_id'     => $r['jornada_id'] ? (int) $r['jornada_id'] : null,
                 'inicio'         => $r['inicio'],
+                'inicio_iso'     => $r['inicio'] ? (new \DateTimeImmutable($r['inicio']))->format(DATE_ATOM) : null,
                 'instalacion_id' => $r['instalacion_id'] ? (int) $r['instalacion_id'] : null,
                 'instalacion'    => $r['instalacion'],
             ];

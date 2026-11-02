@@ -2,7 +2,6 @@
 -- MySQL 5.7+ / 8.x. Codificacion utf8mb4.
 
 SET NAMES utf8mb4;
-SET time_zone = '+00:00';
 
 CREATE TABLE IF NOT EXISTS usuarios (
   id            INT UNSIGNED NOT NULL AUTO_INCREMENT,

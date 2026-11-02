@@ -3,6 +3,7 @@
 // config.php NO se versiona (ver .gitignore).
 
 return [
+    'timezone' => 'Europe/Madrid',
     'db' => [
         'host'    => '127.0.0.1',
         'port'    => 3306,

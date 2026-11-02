@@ -19,6 +19,7 @@ final class Config
             exit;
         }
         self::$data = require $path;
+        date_default_timezone_set(self::$data['timezone'] ?? 'Europe/Madrid');
     }
 
     public static function get(string $key, $default = null)

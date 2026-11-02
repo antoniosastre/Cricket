@@ -55,7 +55,7 @@ export function minutosTotales() {
 }
 
 export function anadirMaterial(m) {
-  session.materiales.push({ uuid: uuid(), fecha: new Date().toISOString().slice(0, 10), ...m })
+  session.materiales.push({ uuid: uuid(), fecha: new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid' }).format(new Date()), ...m })
 }
 
 export function quitarMaterial(uuidM) {

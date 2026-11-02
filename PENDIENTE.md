@@ -77,13 +77,6 @@ OVH, en sus planes básicos, no da SSH ni ejecuta nada al desplegar, y no tiene 
 - PIN de 6 cifras o más y contraseña de admin de 10 caracteres o más, al crear y al cambiar. La semilla de desarrollo pasa a un PIN de 6 cifras.
 - Un `password_verify` ficticio cuando el usuario no existe, para que el tiempo de respuesta no lo delate.
 
-## 3. Zona horaria `Europe/Madrid`
-
-- `timezone` en `config.php`, aplicada con `date_default_timezone_set` al cargar la configuración. En la sesión de MySQL, `SET time_zone` con el desfase actual (`+01:00`/`+02:00`), porque el hosting puede no tener cargadas las tablas de zonas.
-- PWA: la fecha de los materiales en fecha local, no `toISOString().slice(0, 10)`.
-- Dashboard: `elapsed()` sin añadir `Z`.
-- El editor de Trabajos y el CSV ya trabajan en hora local.
-- Pruebas: una jornada en UTC de invierno y otra de verano se guardan y se muestran en hora peninsular.
 
 ## 4. Cola offline de la PWA por usuario
 
