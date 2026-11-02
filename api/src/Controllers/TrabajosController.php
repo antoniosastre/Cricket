@@ -57,7 +57,7 @@ final class TrabajosController
         $db = Db::conn();
 
         $jh = $db->prepare(
-            "SELECT j.id, j.inicio, j.fin, j.duracion_min, u.nombre AS trabajador
+            "SELECT j.id, j.inicio, j.fin, j.duracion_min, ROUND(ROUND(j.duracion_min/60,2)*u.tarifa_hora,2) AS importe, u.nombre AS trabajador
              FROM jornadas j JOIN usuarios u ON u.id = j.usuario_id
              WHERE j.instalacion_id = ? AND j.estado = 'confirmada' AND j.lote_id IS NULL
              ORDER BY j.inicio"
@@ -70,12 +70,13 @@ final class TrabajosController
                 'fin'        => $r['fin'],
                 'horas'      => round(((int) $r['duracion_min']) / 60, 2),
                 'trabajador' => $r['trabajador'],
+                'importe'    => $r['importe'] === null ? null : (float) $r['importe'],
             ];
         }, $jh->fetchAll());
 
         $jm = $db->prepare(
             "SELECT m.id, m.fecha, m.descripcion, m.cantidad, m.unidad,
-                    m.precio_unit, m.origen, u.nombre AS trabajador
+                    m.precio_unit, ROUND(m.cantidad*m.precio_unit,2) AS importe, m.origen, u.nombre AS trabajador
              FROM materiales_linea m JOIN usuarios u ON u.id = m.usuario_id
              WHERE m.instalacion_id = ? AND m.lote_id IS NULL
              ORDER BY FIELD(m.origen,'empresa','cliente'), m.fecha"
@@ -91,6 +92,7 @@ final class TrabajosController
                 'precio_unit' => $r['precio_unit'] !== null ? (float) $r['precio_unit'] : null,
                 'origen'      => $r['origen'],
                 'trabajador'  => $r['trabajador'],
+                'importe'     => $r['importe'] === null ? null : (float) $r['importe'],
             ];
         }, $jm->fetchAll());
 

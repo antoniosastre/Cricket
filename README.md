@@ -47,7 +47,7 @@ cantidad/unidad, `precio_unit` y `origen` empresa/cliente). `lotes_facturacion`
 agrupa las líneas facturadas para el historial y la exportación.
 
 - **Pendiente de facturar**: `estado='confirmada'` y `lote_id IS NULL`.
-- **Facturado / historial**: `lote_id` asignado.
+- **Facturado / historial**: `lote_id` asignado. La tarifa se congela en la jornada al facturar y se libera al revertir. Los lotes conservan sus importes cuando cambia la tarifa del trabajador.
 - El `uuid` por registro hace que `POST /sync` sea idempotente (upsert): reenviar
   desde la cola offline no duplica datos. Un reenvío no modifica una línea ya
   facturada ni la de otro trabajador: se ignora.

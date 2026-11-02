@@ -18,7 +18,7 @@ final class FacturacionController
         $referencia = trim((string) ($b['referencia'] ?? ''));
 
         if (!$jornadas && !$materiales) {
-            Http::error('No hay lineas seleccionadas');
+            Http::error('No hay líneas pendientes seleccionadas', 409);
         }
 
         $db = Db::conn();
@@ -28,11 +28,24 @@ final class FacturacionController
             $st->execute([(int) $p['sub'], $referencia !== '' ? $referencia : null]);
             $loteId = (int) $db->lastInsertId();
 
+            $asignadas = 0;
             if ($jornadas) {
-                self::assign($db, 'jornadas', $jornadas, $loteId, "estado = 'confirmada' AND lote_id IS NULL");
+                $in = implode(',', array_fill(0, count($jornadas), '?'));
+                $st = $db->prepare("UPDATE jornadas j JOIN usuarios u ON u.id=j.usuario_id
+                    SET j.lote_id=?, j.tarifa_hora=u.tarifa_hora
+                    WHERE j.id IN ($in) AND j.estado='confirmada' AND j.lote_id IS NULL");
+                $st->execute([$loteId, ...$jornadas]);
+                $asignadas += $st->rowCount();
             }
             if ($materiales) {
-                self::assign($db, 'materiales_linea', $materiales, $loteId, 'lote_id IS NULL');
+                $in = implode(',', array_fill(0, count($materiales), '?'));
+                $st = $db->prepare("UPDATE materiales_linea SET lote_id=? WHERE id IN ($in) AND lote_id IS NULL");
+                $st->execute([$loteId, ...$materiales]);
+                $asignadas += $st->rowCount();
+            }
+            if (!$asignadas) {
+                $db->rollBack();
+                Http::error('Ninguna línea seleccionada está pendiente', 409);
             }
             $db->commit();
         } catch (\Throwable $e) {
@@ -43,14 +56,6 @@ final class FacturacionController
         Http::json(['lote_id' => $loteId], 201);
     }
 
-    private static function assign(\PDO $db, string $table, array $ids, int $loteId, string $cond): void
-    {
-        $in = implode(',', array_fill(0, count($ids), '?'));
-        $sql = "UPDATE $table SET lote_id = ? WHERE id IN ($in) AND $cond";
-        $st = $db->prepare($sql);
-        $st->execute(array_merge([$loteId], $ids));
-    }
-
     // Deshace un lote facturado por error: libera las lineas y borra el lote.
     public static function revertir(int $loteId): void
     {
@@ -58,7 +63,13 @@ final class FacturacionController
         $db = Db::conn();
         $db->beginTransaction();
         try {
-            $db->prepare('UPDATE jornadas SET lote_id = NULL WHERE lote_id = ?')->execute([$loteId]);
+            $existe = $db->prepare('SELECT id FROM lotes_facturacion WHERE id=? FOR UPDATE');
+            $existe->execute([$loteId]);
+            if (!$existe->fetchColumn()) {
+                $db->rollBack();
+                Http::error('Lote no encontrado', 404);
+            }
+            $db->prepare('UPDATE jornadas SET lote_id = NULL, tarifa_hora = NULL WHERE lote_id = ?')->execute([$loteId]);
             $db->prepare('UPDATE materiales_linea SET lote_id = NULL WHERE lote_id = ?')->execute([$loteId]);
             $db->prepare('DELETE FROM lotes_facturacion WHERE id = ?')->execute([$loteId]);
             $db->commit();
@@ -75,9 +86,16 @@ final class FacturacionController
         Auth::require('admin');
         $db = Db::conn();
 
+        $db->beginTransaction();
+        $existe = $db->prepare('SELECT id FROM lotes_facturacion WHERE id=?');
+        $existe->execute([$loteId]);
+        if (!$existe->fetchColumn()) {
+            $db->rollBack();
+            Http::error('Lote no encontrado', 404);
+        }
         $jh = $db->prepare(
             "SELECT i.nombre AS instalacion, c.nombre AS cliente, u.nombre AS trabajador,
-                    u.tarifa_hora, j.inicio, j.duracion_min
+                    j.tarifa_hora, j.inicio, j.duracion_min
              FROM jornadas j
              JOIN instalaciones i ON i.id = j.instalacion_id
              LEFT JOIN clientes c ON c.id = i.cliente_id
@@ -121,8 +139,14 @@ final class FacturacionController
             ];
         }
 
+        $db->commit();
         $out = '';
         foreach ($rows as $row) {
+            foreach ([0, 1, 2, 3, 4, 5, 6, 8] as $i) {
+                if (preg_match('/^[=+@\-\t\r\n]/', (string) $row[$i])) {
+                    $row[$i] = "'" . $row[$i];
+                }
+            }
             $out .= implode(';', array_map([self::class, 'esc'], $row)) . "\r\n";
         }
         Http::csv($out, 'facturacion_lote_' . $loteId . '.csv');
@@ -135,11 +159,13 @@ final class FacturacionController
         $sql = "SELECT l.id, l.fecha, l.referencia, a.nombre AS admin,
                        COALESCE(jh.minutos,0) AS minutos,
                        COALESCE(jh.n,0) AS n_horas,
-                       COALESCE(mm.n,0) AS n_mat
+                       COALESCE(mm.n,0) AS n_mat,
+                       COALESCE(jh.importe,0) + COALESCE(mm.importe,0) AS total_euros
                 FROM lotes_facturacion l
                 LEFT JOIN usuarios a ON a.id = l.admin_id
-                LEFT JOIN (SELECT lote_id, SUM(duracion_min) minutos, COUNT(*) n FROM jornadas GROUP BY lote_id) jh ON jh.lote_id = l.id
-                LEFT JOIN (SELECT lote_id, COUNT(*) n FROM materiales_linea GROUP BY lote_id) mm ON mm.lote_id = l.id
+                LEFT JOIN (SELECT lote_id, SUM(duracion_min) minutos, COUNT(*) n,
+                           SUM(ROUND(ROUND(duracion_min/60,2)*tarifa_hora,2)) importe FROM jornadas GROUP BY lote_id) jh ON jh.lote_id = l.id
+                LEFT JOIN (SELECT lote_id, COUNT(*) n, SUM(ROUND(cantidad*precio_unit,2)) importe FROM materiales_linea GROUP BY lote_id) mm ON mm.lote_id = l.id
                 ORDER BY l.fecha DESC";
         $rows = Db::conn()->query($sql)->fetchAll();
         $out = array_map(static function ($r) {
@@ -150,6 +176,7 @@ final class FacturacionController
                 'admin'       => $r['admin'],
                 'total_horas' => round(((int) $r['minutos']) / 60, 2),
                 'total_mat'   => (int) $r['n_mat'],
+                'total_euros' => (float) $r['total_euros'],
             ];
         }, $rows);
         Http::json($out);
