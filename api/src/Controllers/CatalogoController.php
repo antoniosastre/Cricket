@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Auth;
 use App\Db;
+use App\Edicion;
 use App\Http;
 
 final class CatalogoController
@@ -39,17 +40,8 @@ final class CatalogoController
     public static function update(int $id): void
     {
         Auth::require('admin');
-        $b = Http::body();
-        $st = Db::conn()->prepare(
-            'UPDATE materiales_catalogo SET descripcion=?, unidad=?, precio=?, activo=? WHERE id=?'
-        );
-        $st->execute([
-            trim((string) ($b['descripcion'] ?? '')),
-            trim((string) ($b['unidad'] ?? 'ud')) ?: 'ud',
-            isset($b['precio']) && $b['precio'] !== '' ? (float) $b['precio'] : null,
-            isset($b['activo']) ? (int) (bool) $b['activo'] : 1,
-            $id,
-        ]);
+        $campos = Edicion::campos(Http::body(), ['descripcion', 'unidad', 'precio', 'activo'], ['descripcion', 'unidad']);
+        Edicion::guardar(Db::conn(), 'materiales_catalogo', $id, $campos);
         Http::json(['ok' => true]);
     }
 

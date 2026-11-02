@@ -13,7 +13,8 @@ final class MaterialesController
     {
         Auth::require('admin');
         $db = Db::conn();
-        $st = $db->prepare('SELECT * FROM materiales_linea WHERE id = ?');
+        $db->beginTransaction();
+        $st = $db->prepare('SELECT * FROM materiales_linea WHERE id = ? FOR UPDATE');
         $st->execute([$id]);
         $m = $st->fetch();
         if (!$m) {
@@ -43,10 +44,11 @@ final class MaterialesController
 
         $up = $db->prepare(
             'UPDATE materiales_linea
-             SET fecha=?, descripcion=?, cantidad=?, unidad=?, precio_unit=?, origen=?
+             SET editada_admin=1, fecha=?, descripcion=?, cantidad=?, unidad=?, precio_unit=?, origen=?
              WHERE id=?'
         );
         $up->execute([$fecha, $descripcion, $cantidad, $unidad, $precio, $origen, $id]);
+        $db->commit();
         Http::json(['ok' => true]);
     }
 

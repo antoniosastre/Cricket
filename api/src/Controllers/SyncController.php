@@ -115,11 +115,11 @@ final class SyncController
     // trabajador. FOR UPDATE la bloquea hasta el commit de la sincronizacion.
     private static function protegida(\PDO $db, string $tabla, string $uuid, int $usuarioId): bool
     {
-        $st = $db->prepare("SELECT usuario_id, lote_id FROM $tabla WHERE uuid = ? FOR UPDATE");
+        $st = $db->prepare("SELECT usuario_id, lote_id, editada_admin FROM $tabla WHERE uuid = ? FOR UPDATE");
         $st->execute([$uuid]);
         $fila = $st->fetch();
         return $fila !== false
-            && ($fila['lote_id'] !== null || (int) $fila['usuario_id'] !== $usuarioId);
+            && ($fila['editada_admin'] || $fila['lote_id'] !== null || (int) $fila['usuario_id'] !== $usuarioId);
     }
 
     private static function dt($v): ?string

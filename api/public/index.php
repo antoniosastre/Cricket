@@ -77,6 +77,7 @@ $r->post('/catalogo',        [CatalogoController::class, 'create']);
 $r->patch('/catalogo/{id}',  [CatalogoController::class, 'update']);
 $r->delete('/catalogo/{id}', [CatalogoController::class, 'delete']);
 
+$r->get('/jornadas/abiertas', [JornadasController::class, 'abiertas']);
 $r->patch('/jornadas/{id}',  [JornadasController::class, 'update']);
 $r->delete('/jornadas/{id}', [JornadasController::class, 'delete']);
 

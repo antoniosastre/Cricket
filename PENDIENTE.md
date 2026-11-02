@@ -93,25 +93,6 @@ OVH, en sus planes básicos, no da SSH ni ejecuta nada al desplegar, y no tiene 
 - Enseñar en la cabecera cuándo falla la subida.
 - Pruebas: Vitest con `fake-indexeddb` para `db.js` y `sync.js`, y un paso `npm test` en el CI.
 
-## 5. Jornadas abiertas y pantallas de edición del portal
-
-- **Jornadas que se quedan «en curso» para siempre** (trabajador que sale o pierde el móvil):
-  - el Dashboard enseña «Trabajando» indefinidamente y esas horas nunca salen como pendientes;
-  - hace falta una lista de jornadas sin confirmar, con Cerrar (fin; se confirma con el `PATCH` que ya existe) y Descartar;
-  - **una corrección del admin gana a un reenvío posterior del móvil**: una columna `editada_admin` que `SyncController::protegida` también respete.
-- **Rutas `PATCH` sin pantalla**, en Administración:
-  - **trabajadores**: nombre, email, rol, tarifa, PIN, contraseña y reactivar;
-  - **clientes**: todos los campos, incluido el email;
-  - **instalaciones**: nombre, cliente, dirección y descripción;
-  - **catálogo**: descripción, unidad y precio.
-- **`TrabajadoresController::update`**:
-  - que solo cambie lo que llega (hoy pisa con valores por defecto: sin `rol` lo deja en trabajador, sin `nombre` lo deja vacío);
-  - 409 con un email repetido (hoy, 500);
-  - que nadie pueda darse de baja ni quitarse el rol de admin a sí mismo, ni dejar la aplicación sin admins activos.
-- Los `update` de clientes, instalaciones y catálogo, igual: parciales y con el nombre obligatorio.
-- **Borrar un cliente con instalaciones → 409.** Hoy se borra de verdad y los CSV antiguos pierden su nombre.
-- El router con `{id}` numérico: `/trabajos/abc` → 404 en vez de 500. Ajustar la prueba de `errores.test.mjs`.
-- Tildes en los textos del portal («Administración», «Contraseña», «Añadir», «Catálogo»).
 
 ## 6. Facturación
 

@@ -11,7 +11,7 @@ para su posterior facturación.
 Consta de dos frentes sobre una misma API:
 
 - **Portal de administración** (`/admin`): escritorio, online. Dashboard del estado
-  de los trabajadores en tiempo real, gestión, **edición/borrado de líneas** de
+  de los trabajadores en tiempo real, cierre o descarte de jornadas sin confirmar, edición de usuarios, clientes, instalaciones y catálogo, **edición/borrado de líneas** de
   horas y materiales pendientes, y facturación (marcar líneas como facturadas +
   exportar a CSV).
 - **PWA del trabajador** (`/pwa`): móvil, **offline-first**. Selector de instalación,

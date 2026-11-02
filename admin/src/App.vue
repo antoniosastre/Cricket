@@ -16,7 +16,7 @@ function doLogout() {
       <router-link to="/">Dashboard</router-link>
       <router-link to="/trabajos">Trabajos</router-link>
       <router-link to="/archivado">Archivado</router-link>
-      <router-link to="/admin">Administracion</router-link>
+      <router-link to="/admin">Administración</router-link>
     </nav>
     <span class="spacer"></span>
     <span class="muted">{{ auth.user.nombre }}</span>

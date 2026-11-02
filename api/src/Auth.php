@@ -14,6 +14,11 @@ final class Auth
         if (!$payload || ($payload['typ'] ?? '') === 'refresh') {
             Http::error('No autorizado', 401);
         }
+        $st = Db::conn()->prepare('SELECT rol FROM usuarios WHERE id=? AND activo=1');
+        $st->execute([(int) $payload['sub']]);
+        if ($st->fetchColumn() !== $payload['rol']) {
+            Http::error('El acceso de la cuenta ha cambiado', 401);
+        }
         if ($rol !== null && ($payload['rol'] ?? null) !== $rol) {
             Http::error('Permisos insuficientes', 403);
         }
