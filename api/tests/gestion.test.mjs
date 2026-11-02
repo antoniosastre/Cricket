@@ -24,6 +24,16 @@ test('cerrar o descartar una jornada sin confirmar prevalece ante un reenvío de
   }
 })
 
+test('cambiar de rol exige identificarse con la credencial del nuevo acceso', async () => {
+  const admin = await entrarAdmin()
+  const t = await crearTrabajador(admin)
+  const password = 'clave-de-administracion-ensayo'
+  assert.equal((await llamar('/trabajadores/' + t.id, { method: 'PATCH', token: admin.access, body: { rol: 'admin', password } })).status, 200)
+  assert.equal((await llamar('/auth/me', { token: t.access })).status, 401)
+  assert.equal((await llamar('/auth/refresh', { method: 'POST', body: { refresh: t.refresh } })).status, 401)
+  assert.equal((await llamar('/auth/login', { method: 'POST', body: { email: t.email, password } })).status, 200)
+})
+
 test('los cambios parciales conservan el resto del registro y protegen los accesos administrativos', async () => {
   const admin = await entrarAdmin()
   const t = await crearTrabajador(admin)

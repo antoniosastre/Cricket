@@ -61,8 +61,8 @@ final class AuthController
         $st = Db::conn()->prepare('SELECT * FROM usuarios WHERE id = ? AND activo = 1 LIMIT 1');
         $st->execute([(int) $payload['sub']]);
         $u = $st->fetch();
-        if (!$u) {
-            Http::error('Usuario no encontrado', 401);
+        if (!$u || $u['rol'] !== ($payload['rol'] ?? null)) {
+            Http::error('El acceso de la cuenta ha cambiado', 401);
         }
         self::issue($u);
     }
