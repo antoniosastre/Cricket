@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Auth;
 use App\Db;
+use App\Edicion;
 use App\Http;
 
 final class ClientesController
@@ -38,25 +39,30 @@ final class ClientesController
     public static function update(int $id): void
     {
         Auth::require('admin');
-        $b = Http::body();
-        $st = Db::conn()->prepare(
-            'UPDATE clientes SET nombre=?, nif=?, direccion=?, telefono=?, email=? WHERE id=?'
-        );
-        $st->execute([
-            trim((string) ($b['nombre'] ?? '')),
-            self::nn($b['nif'] ?? null),
-            self::nn($b['direccion'] ?? null),
-            self::nn($b['telefono'] ?? null),
-            self::nn($b['email'] ?? null),
-            $id,
-        ]);
+        $campos = Edicion::campos(Http::body(), ['nombre', 'nif', 'direccion', 'telefono', 'email'], ['nombre']);
+        Edicion::guardar(Db::conn(), 'clientes', $id, $campos);
         Http::json(['ok' => true]);
     }
 
     public static function delete(int $id): void
     {
         Auth::require('admin');
-        Db::conn()->prepare('DELETE FROM clientes WHERE id=?')->execute([$id]);
+        $db = Db::conn();
+        $db->beginTransaction();
+        $st = $db->prepare('SELECT id FROM clientes WHERE id=? FOR UPDATE');
+        $st->execute([$id]);
+        if (!$st->fetchColumn()) {
+            $db->rollBack();
+            Http::error('Cliente no encontrado', 404);
+        }
+        $st = $db->prepare('SELECT 1 FROM instalaciones WHERE cliente_id=? LIMIT 1');
+        $st->execute([$id]);
+        if ($st->fetchColumn()) {
+            $db->rollBack();
+            Http::error('El cliente tiene instalaciones asociadas', 409);
+        }
+        $db->prepare('DELETE FROM clientes WHERE id=?')->execute([$id]);
+        $db->commit();
         Http::json(['ok' => true]);
     }
 

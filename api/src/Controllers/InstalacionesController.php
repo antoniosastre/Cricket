@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Auth;
 use App\Db;
+use App\Edicion;
 use App\Http;
 
 final class InstalacionesController
@@ -48,18 +49,8 @@ final class InstalacionesController
     public static function update(int $id): void
     {
         Auth::require('admin');
-        $b = Http::body();
-        $cliente = isset($b['cliente_id']) && $b['cliente_id'] !== '' ? (int) $b['cliente_id'] : null;
-        $st = Db::conn()->prepare(
-            'UPDATE instalaciones SET cliente_id=?, nombre=?, direccion=?, descripcion=? WHERE id=?'
-        );
-        $st->execute([
-            $cliente,
-            trim((string) ($b['nombre'] ?? '')),
-            self::nn($b['direccion'] ?? null),
-            self::nn($b['descripcion'] ?? null),
-            $id,
-        ]);
+        $campos = Edicion::campos(Http::body(), ['nombre', 'cliente_id', 'direccion', 'descripcion'], ['nombre']);
+        Edicion::guardar(Db::conn(), 'instalaciones', $id, $campos);
         Http::json(['ok' => true]);
     }
 

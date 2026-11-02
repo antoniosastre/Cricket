@@ -13,9 +13,6 @@ test('una ruta desconocida -> 404', async () => {
   assert.equal(r.status, 404)
 })
 
-test('un error no controlado -> 500 generico, sin detalles', async () => {
-  // /trabajos/{id} espera un entero: un texto provoca un TypeError en PHP.
-  const r = await llamar('/trabajos/abc', { token: admin.access })
-  assert.equal(r.status, 500)
-  assert.deepEqual(r.json, { error: 'Error interno' })
+test('un identificador de ruta no numérico devuelve 404', async () => {
+  assert.equal((await llamar('/trabajos/abc', { token: admin.access })).status, 404)
 })

@@ -24,7 +24,7 @@ final class Router
             if ($m !== strtoupper($method)) {
                 continue;
             }
-            $regex = '#^' . preg_replace('#\{[a-zA-Z_]+\}#', '([^/]+)', $pattern) . '$#';
+            $regex = '#^' . str_replace('\{id\}', '([0-9]+)', preg_quote($pattern, '#')) . '$#';
             if (preg_match($regex, $path, $matches)) {
                 array_shift($matches);
                 $args = array_map(static fn ($v) => ctype_digit($v) ? (int) $v : $v, $matches);
