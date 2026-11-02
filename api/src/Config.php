@@ -16,6 +16,7 @@ final class Config
             throw new \RuntimeException('Falta la configuración privada');
         }
         self::$data = require $path;
+        date_default_timezone_set(self::$data['timezone'] ?? 'Europe/Madrid');
     }
 
     public static function get(string $key, $default = null)

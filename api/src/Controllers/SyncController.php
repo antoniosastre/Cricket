@@ -54,7 +54,7 @@ final class SyncController
         $estado = in_array($j['estado'] ?? '', ['en_curso', 'confirmada', 'descartada'], true)
             ? $j['estado'] : 'en_curso';
         $dur = $fin !== null
-            ? max(0, (int) round((strtotime($fin) - strtotime($inicio)) / 60))
+            ? max(0, (int) round((strtotime((string) $j['fin']) - strtotime((string) $j['inicio'])) / 60))
             : null;
         $notas = isset($j['notas']) ? mb_substr((string) $j['notas'], 0, 255) : null;
 

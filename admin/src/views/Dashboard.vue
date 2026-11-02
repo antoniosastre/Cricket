@@ -17,7 +17,7 @@ async function load() {
 
 function elapsed(inicio) {
   if (!inicio) return ''
-  const mins = Math.max(0, Math.round((Date.now() - new Date(inicio.replace(' ', 'T') + 'Z').getTime()) / 60000))
+  const mins = Math.max(0, Math.round((Date.now() - new Date(inicio.replace(' ', 'T')).getTime()) / 60000))
   const h = Math.floor(mins / 60)
   const m = mins % 60
   return `${h}h ${String(m).padStart(2, '0')}m`
@@ -43,7 +43,7 @@ onUnmounted(() => clearInterval(timer))
       <span class="spacer" style="flex:1"></span>
       <template v-if="t.activo">
         <span class="muted">{{ t.instalacion }}</span>
-        <strong>{{ elapsed(t.inicio) }}</strong>
+        <strong>{{ elapsed(t.inicio_iso || t.inicio) }}</strong>
       </template>
       <span v-else class="muted">Sin temporizador</span>
     </div>

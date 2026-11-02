@@ -11,7 +11,7 @@ const guardando = ref(false)
 const horas = computed(() => (minutosTotales() / 60).toFixed(2))
 
 function fmtHora(iso) {
-  return iso ? new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '—'
+  return iso ? new Date(iso).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' }) : '—'
 }
 function durSeg(s) {
   const fin = s.fin ? new Date(s.fin).getTime() : Date.now()

@@ -24,6 +24,8 @@ final class Db
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
+            // El alojamiento puede no tener tablas de zonas horarias instaladas.
+            self::$pdo->prepare('SET time_zone = ?')->execute([date('P')]);
         }
         return self::$pdo;
     }
