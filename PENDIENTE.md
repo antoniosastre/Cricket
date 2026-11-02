@@ -127,12 +127,6 @@ OVH, en sus planes básicos, no da SSH ni ejecuta nada al desplegar, y no tiene 
 - Facturar sin ninguna línea pendiente → 409, sin crear un lote vacío.
 - Revertir o exportar un lote que no existe → 404.
 
-## 7. Dependencias
-
-- `npm audit`: 6 avisos altos en `admin/` y 9 en `pwa/`. Casi todos se arreglan dentro de los rangos actuales (`npm audit fix`, solo el lockfile). Vite pide la 8, con `@vitejs/plugin-vue` 6 y `vite-plugin-pwa` compatible. `vue-router` 5 solo si hace falta.
-- Node del CI y del despliegue a 22 o superior: Vite 8 lo exige.
-- `npm audit --audit-level=high` en el CI para las dos SPA.
-- Comprobar en un navegador que el service worker se registra y que el ciclo sin conexión → reconexión sigue funcionando.
 
 ## Más adelante
 

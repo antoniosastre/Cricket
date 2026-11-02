@@ -54,7 +54,7 @@ agrupa las líneas facturadas para el historial y la exportación.
 
 ## Puesta en marcha (desarrollo)
 
-Requisitos: PHP 8 con `pdo_mysql`, MySQL/MariaDB y Node 18+.
+Requisitos: PHP 8 con `pdo_mysql`, MySQL/MariaDB y Node 24 LTS.
 
 ### 1) Backend
 
@@ -133,7 +133,7 @@ npm run dev        # http://127.0.0.1:5174
   CRICKET_API=http://127.0.0.1:8080 node --test api/tests/*.test.mjs
   ```
 
-- **build (admin)** y **build (pwa)**: `npm ci` + `npm run build` de cada SPA.
+- **build (admin)** y **build (pwa)**: `npm ci`, `npm audit --audit-level=high` y `npm run build` de cada SPA.
 
 ## Seguridad
 
