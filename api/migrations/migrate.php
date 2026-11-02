@@ -17,8 +17,8 @@ echo "Esquema aplicado.\n";
 // 2) Semilla (solo si no hay usuarios todavia)
 $count = (int) $db->query('SELECT COUNT(*) FROM usuarios')->fetchColumn();
 if ($count === 0) {
-    $admin = password_hash('admin1234', PASSWORD_DEFAULT);
-    $pin   = password_hash('1234', PASSWORD_DEFAULT);
+    $admin = password_hash('admin-demo-2026', PASSWORD_DEFAULT);
+    $pin   = password_hash('123456', PASSWORD_DEFAULT);
 
     $db->prepare('INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES (?,?,?,?)')
        ->execute(['Administrador', 'admin@empresa.com', $admin, 'admin']);
@@ -48,7 +48,7 @@ if ($count === 0) {
         $stc->execute($c);
     }
 
-    echo "Semilla creada. Admin: admin@empresa.com / admin1234. Trabajadores PIN: 1234.\n";
+    echo "Semilla creada. Admin: admin@empresa.com / admin-demo-2026. Trabajadores PIN: 123456.\n";
 } else {
     echo "Ya habia datos; semilla omitida.\n";
 }

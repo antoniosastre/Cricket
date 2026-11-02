@@ -15,6 +15,7 @@ return [
     // (p. ej. `openssl rand -base64 48`). Con este valor de ejemplo, o con uno mas
     // corto, la API se niega a emitir y a aceptar tokens (responde 500).
     'jwt_secret' => 'CAMBIA_ESTO_POR_UN_SECRETO_LARGO_Y_ALEATORIO',
+    'limite_login_ip' => 60, // Fallos en 15 minutos por REMOTE_ADDR.
     // Duracion de los tokens (segundos).
     'access_ttl'  => 3600,            // 1 hora
     'refresh_ttl' => 60 * 60 * 24 * 60, // 60 dias (sesion larga del trabajador)

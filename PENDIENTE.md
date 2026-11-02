@@ -67,15 +67,6 @@ OVH, en sus planes básicos, no da SSH ni ejecuta nada al desplegar, y no tiene 
 - Crear los secretos y las variables en GitHub.
 - Tras el primer despliegue, crear el admin desde el portal.
 
-## 2. Límite de intentos de login y PIN de 6 cifras
-
-- Hoy el PIN tiene 4 cifras, `login-pin` no limita intentos y el listado de trabajadores para el login es público. El login de admin tampoco limita intentos.
-- Migración con la tabla `intentos_login` (clave de cuenta, IP, fecha).
-  - Por cuenta: 5 fallos en 15 min → 429 con el tiempo de espera.
-  - Por IP (`REMOTE_ADDR`; no fiarse de `X-Forwarded-For`): un límite más alto y configurable, porque en un hosting compartido conviene comprobar que `REMOTE_ADDR` es el del cliente.
-  - Un login correcto limpia los fallos de esa cuenta; las filas de más de un día se borran.
-- PIN de 6 cifras o más y contraseña de admin de 10 caracteres o más, al crear y al cambiar. La semilla de desarrollo pasa a un PIN de 6 cifras.
-- Un `password_verify` ficticio cuando el usuario no existe, para que el tiempo de respuesta no lo delate.
 
 ## 3. Zona horaria `Europe/Madrid`
 

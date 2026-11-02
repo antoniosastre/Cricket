@@ -65,7 +65,7 @@ php migrations/migrate.php                       # crea tablas + datos de ejempl
 php -S 127.0.0.1:8080 -t public public/index.php # API en http://127.0.0.1:8080
 ```
 
-Datos semilla: admin `admin@empresa.com` / `admin1234`; trabajadores con PIN `1234`.
+Datos semilla: admin `admin@empresa.com` / `admin-demo-2026`; trabajadores con PIN `123456`.
 
 ### 2) Portal admin
 

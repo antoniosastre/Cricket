@@ -1,20 +1,13 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, setSession } from '../api'
 
 const router = useRouter()
-const trabajadores = ref([])
 const usuario = ref('')
 const pin = ref('')
 const error = ref('')
 const loading = ref(false)
-
-onMounted(async () => {
-  // Listado publico (solo id+nombre) para el selector de trabajador.
-  try { trabajadores.value = await api('/trabajadores?rol=trabajador&login=1') }
-  catch { /* sin conexion: se podra escribir el email manualmente */ }
-})
 
 async function entrar() {
   error.value = ''
@@ -39,19 +32,15 @@ async function entrar() {
     </div>
     <div class="panel">
       <label>
-        <span>Trabajador</span>
-        <select v-if="trabajadores.length" v-model="usuario">
-          <option value="" disabled>Selecciona…</option>
-          <option v-for="t in trabajadores" :key="t.id" :value="t.id">{{ t.nombre }}</option>
-        </select>
-        <input v-else v-model="usuario" placeholder="tu-email@empresa.com" />
+        <span>Email del trabajador</span>
+        <input v-model="usuario" type="email" autocomplete="username" placeholder="tu-email@empresa.com" />
       </label>
       <label>
         <span>PIN</span>
-        <input v-model="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="••••" />
+        <input v-model="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="6 cifras o más" />
       </label>
       <p v-if="error" class="error">{{ error }}</p>
-      <button :disabled="loading || !usuario || !pin" @click="entrar">
+      <button :disabled="loading || !usuario || !/^[0-9]{6,72}$/.test(pin)" @click="entrar">
         {{ loading ? 'Entrando…' : 'Entrar' }}
       </button>
     </div>
